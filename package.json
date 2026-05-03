@@ -1,0 +1,23 @@
+{
+  "name": "ai-reviewer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "review": "ts-node src/index.ts",
+    "smoke": "ts-node src/vcs/_tests_/smoke-github.ts",
+    "smoke:e2e": "ts-node src/_tests_/smoke-e2e.ts",
+    "dev:github": "ts-node src/github-app/index.ts"
+  },
+  "dependencies": {
+    "@github/copilot-sdk": "latest",
+    "@octokit/rest": "^20.1.1",
+    "probot": "^14.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "dotenv": "^17.4.2",
+    "smee-client": "^5.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

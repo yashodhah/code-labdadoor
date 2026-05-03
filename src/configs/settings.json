@@ -1,0 +1,27 @@
+{
+  "vcs": {
+    "token": "",
+    "projectId": "",
+    "mrIid": 0
+  },
+  "models": {
+    "top": {
+      "id": "claude-opus-4-7",
+      "provider": "anthropic",
+      "fallbackChain": ["claude-opus-4-6", "claude-opus-4-5"],
+      "usedFor": "coordinator"
+    },
+    "standard": {
+      "id": "claude-sonnet-4",
+      "provider": "anthropic",
+      "fallbackChain": ["claude-sonnet-3-7"],
+      "usedFor": "security, performance, code-quality"
+    },
+    "lightweight": {
+      "id": "claude-haiku-4-5",
+      "provider": "anthropic",
+      "fallbackChain": ["claude-haiku-4-5"],
+      "usedFor": "docs, release, agents-md"
+    }
+  }
+}
