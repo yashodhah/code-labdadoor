@@ -3,7 +3,9 @@ import * as nodefs from 'node:fs';
 import * as nodepath from 'node:path';
 import * as nodeos from 'node:os';
 
-import { getContextDir, parseDiffIntoFiles, writeSharedContext, writePatches } from '../orchestrator';
+import { getContextDir, parseDiffIntoFiles, writeSharedContext, writePatches, prepareContext } from '../orchestrator';
+import { AGENT_REGISTRY } from '../agents';
+import type { DiffContext } from '../../configs/review-config';
 
 // ─── Task 1: getContextDir ────────────────────────────────────────────────────
 
@@ -272,5 +274,91 @@ describe('writePatches', () => {
     writePatches([{ filename: 'src/foo.ts', status: 'modified', patch: '+actual content' }]);
     const content = nodefs.readFileSync(nodepath.join(contextDir, 'patches', 'src__foo.ts.diff'), 'utf-8');
     expect(content).toBe('+actual content');
+  });
+});
+
+// ─── Task 4: prepareContext ───────────────────────────────────────────────────
+
+describe('prepareContext', () => {
+  let base: string;
+  let savedRunnerTemp: string | undefined;
+  let savedRunId: string | undefined;
+
+  const sampleDiff = [
+    'PR #5: Add auth',
+    '',
+    '--- src/index.ts (modified) ---',
+    '@@ -1,2 +1,3 @@',
+    ' import x',
+    '+import y',
+    '',
+    '--- auth/login.ts (added) ---',
+    '@@ -0,0 +1,5 @@',
+    '+export function login() {}',
+  ].join('\n');
+
+  const sampleCtx: DiffContext = {
+    prNumber: 5, title: 'Add auth', author: 'dev',
+    description: '', files: [], additions: 6, deletions: 0,
+  };
+
+  beforeEach(() => {
+    savedRunnerTemp = process.env.RUNNER_TEMP;
+    savedRunId      = process.env.GITHUB_RUN_ID;
+    base = nodefs.mkdtempSync(nodepath.join(nodeos.tmpdir(), 'lb-test-'));
+    setEnvToDir(base);
+  });
+
+  afterEach(() => {
+    if (savedRunnerTemp === undefined) delete process.env.RUNNER_TEMP;
+    else process.env.RUNNER_TEMP = savedRunnerTemp;
+    if (savedRunId === undefined) delete process.env.GITHUB_RUN_ID;
+    else process.env.GITHUB_RUN_ID = savedRunId;
+    nodefs.rmSync(base, { recursive: true, force: true });
+  });
+
+  it('returns one AgentScope per agent in AGENT_REGISTRY', () => {
+    const scopes = prepareContext(sampleDiff, sampleCtx);
+    expect(scopes).toHaveLength(AGENT_REGISTRY.length);
+  });
+
+  it('all AgentScopes share the same sharedContextPath', () => {
+    const scopes = prepareContext(sampleDiff, sampleCtx);
+    const paths = new Set(scopes.map(s => s.sharedContextPath));
+    expect(paths.size).toBe(1);
+  });
+
+  it('sharedContextPath file exists on disk after call', () => {
+    const scopes = prepareContext(sampleDiff, sampleCtx);
+    expect(nodefs.existsSync(scopes[0].sharedContextPath)).toBe(true);
+  });
+
+  it('quality agent (always:true) receives all patch paths', () => {
+    const scopes = prepareContext(sampleDiff, sampleCtx);
+    const quality = scopes.find(s => s.agentName === 'quality')!;
+    expect(quality.patchPaths).toHaveLength(2);
+  });
+
+  it('security agent receives only auth/* file paths', () => {
+    const scopes = prepareContext(sampleDiff, sampleCtx);
+    const security = scopes.find(s => s.agentName === 'security')!;
+    expect(security.patchPaths).toHaveLength(1);
+    expect(security.patchPaths[0]).toContain('auth__login.ts.diff');
+  });
+
+  it('each patchPath file exists on disk', () => {
+    const scopes = prepareContext(sampleDiff, sampleCtx);
+    const quality = scopes.find(s => s.agentName === 'quality')!;
+    for (const p of quality.patchPaths) {
+      expect(nodefs.existsSync(p)).toBe(true);
+    }
+  });
+
+  it('context.json contains pr metadata', () => {
+    const scopes = prepareContext(sampleDiff, sampleCtx);
+    const ctxFile = JSON.parse(nodefs.readFileSync(scopes[0].sharedContextPath, 'utf-8'));
+    expect(ctxFile.pr.number).toBe(5);
+    expect(ctxFile.pr.title).toBe('Add auth');
+    expect(ctxFile.pr.author).toBe('dev');
   });
 });

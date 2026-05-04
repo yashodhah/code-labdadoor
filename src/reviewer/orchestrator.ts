@@ -155,15 +155,43 @@ export function classify(_diff: string, _ctx: DiffContext): { tier: RiskTier; ag
 // ─── Phase 2: Context Preparation ────────────────────────────────────────────
 
 export function prepareContext(_diff: string, _ctx: DiffContext): AgentScope[] {
-  // Write a shared-mr-context.txt file containing PR number, title, author,
-  // description, file list, additions, and deletions.
-  // Write per-file patch files into a diff_directory/ on disk.
-  // Route each patch file to an agent-specific subdirectory so each specialist
-  // only reads patches relevant to its domain (e.g. security agent only gets
-  // auth/crypto/validation files).
-  // Return one AgentScope per agent to be spawned, each with its patch paths
-  // and the shared context path.
-  throw new Error('not implemented');
+  const contextDir = getContextDir();
+  fs.mkdirSync(path.join(contextDir, 'patches'), { recursive: true });
+
+  const files = parseDiffIntoFiles(_diff);
+  const ctx: ReviewContext = {
+    pr: {
+      number:      _ctx.prNumber,
+      title:       _ctx.title,
+      author:      _ctx.author,
+      description: _ctx.description,
+    },
+    stats: {
+      additions:    _ctx.additions,
+      deletions:    _ctx.deletions,
+      filesChanged: files.length,
+    },
+    files,
+  };
+
+  const patchPathMap      = writePatches(files);
+  const sharedContextPath = writeSharedContext(ctx);
+
+  return AGENT_REGISTRY.map((agent): AgentScope => {
+    let agentPatchPaths: string[];
+
+    if (agent.trigger.always) {
+      agentPatchPaths = [...patchPathMap.values()];
+    } else {
+      const patterns = (agent.trigger.pathPatterns ?? []).map(p => new RegExp(p));
+      agentPatchPaths = files
+        .filter(f => patterns.some(re => re.test(f.filename)))
+        .map(f => patchPathMap.get(f.filename))
+        .filter((p): p is string => p !== undefined);
+    }
+
+    return { agentName: agent.name, patchPaths: agentPatchPaths, sharedContextPath };
+  });
 }
 
 // ─── Phase 3: Agent Orchestration ────────────────────────────────────────────
