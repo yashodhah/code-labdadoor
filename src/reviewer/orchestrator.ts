@@ -1,6 +1,11 @@
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import type { DiffContext, ReviewConfig } from '../configs/review-config';
 import { toDiffContext } from '../configs/review-config';
+import { orchestrateAgentsImpl } from './orchestrate-agents';
 import { GitHubVcsProvider } from '../vcs/github';
+import { AGENT_REGISTRY } from './agents';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -15,6 +20,35 @@ export interface AgentScope {
   agentName:         string;
   patchPaths:        string[];
   sharedContextPath: string;
+}
+
+export interface ChangedFile {
+  filename: string;
+  status:   string;
+  patch:    string;
+}
+
+export interface ReviewContext {
+  pr: {
+    number:      number;
+    title:       string;
+    author:      string;
+    description: string;
+  };
+  stats: {
+    additions:    number;
+    deletions:    number;
+    filesChanged: number;
+  };
+  files: ChangedFile[];
+}
+
+export function getContextDir(): string {
+  return path.join(
+    process.env.RUNNER_TEMP ?? os.tmpdir(),
+    'labdadoor',
+    process.env.GITHUB_RUN_ID ?? `local-${Date.now()}`
+  );
 }
 
 // what every specialist produces — one entry per finding (subagent contract)
@@ -69,7 +103,7 @@ export function prepareContext(_diff: string, _ctx: DiffContext): AgentScope[] {
 
 // ─── Phase 3: Agent Orchestration ────────────────────────────────────────────
 
-export async function orchestrateAgents(_scopes: AgentScope[]): Promise<SpecialistFinding[][]> {
+export async function orchestrateAgents(_scopes: AgentScope[], _config: ReviewConfig): Promise<SpecialistFinding[][]> {
   // Spawn all scoped specialist agents in parallel.
   // Pass each agent its domain scope, the path to shared context, and its
   // agent-specific patch subdirectory.
@@ -77,7 +111,7 @@ export async function orchestrateAgents(_scopes: AgentScope[]): Promise<Speciali
   // Circuit-break on timeout or agent failure: skip that domain's findings
   // entirely and log the failure — do not let one broken agent crash the run.
   // Return an array-of-arrays: one findings array per agent.
-  throw new Error('not implemented');
+  return orchestrateAgentsImpl(_scopes, _config);
 }
 
 // ─── Phase 4: Findings Consolidation ─────────────────────────────────────────
@@ -154,9 +188,23 @@ export async function runCodeReview(_config: ReviewConfig): Promise<CoordinatorR
   );
   console.log('Fetched diff:', _diff.slice(0, 200) + '...'); // log a snippet, not the whole thing
   console.log('Derived context:', JSON.stringify(_ctx, null, 2));
+
+  let _rawFindings: SpecialistFinding[][] = [];
+  try {
+    const _classification = classify(_diff, _ctx);
+    const _scopes = prepareContext(_diff, _ctx);
+    const scopedAgents = _scopes.filter((scope) => _classification.agents.includes(scope.agentName));
+    _rawFindings = await orchestrateAgents(scopedAgents, _config);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn('Phase 1/2 placeholders prevented Phase 3 execution in runCodeReview:', message);
+  }
+
   return {
     decision: 'comment',
-    summary: 'This is a placeholder review. Implement the coordinator logic to produce real reviews.',
+    summary: _rawFindings.length
+      ? 'Phase 3 executed and collected specialist findings. Remaining phases are still placeholders.'
+      : 'This is a placeholder review. Implement Phases 1, 2, 4, 5, and 6 to produce real reviews.',
     findings: [],
   };
 }
