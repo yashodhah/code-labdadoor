@@ -105,6 +105,39 @@ export function parseDiffIntoFiles(diff: string): ChangedFile[] {
   });
 }
 
+// Exported for testing only
+export function writeSharedContext(ctx: ReviewContext): string {
+  const contextDir  = getContextDir();
+  const contextPath = path.join(contextDir, 'context.json');
+  const content = {
+    pr:    ctx.pr,
+    stats: ctx.stats,
+    files: ctx.files.map(f => ({
+      filename:  f.filename,
+      status:    f.status,
+      patchPath: path.join(contextDir, 'patches', `${f.filename.replace(/\//g, '__')}.diff`),
+    })),
+  };
+  fs.writeFileSync(contextPath, JSON.stringify(content, null, 2));
+  return contextPath;
+}
+
+// Exported for testing only
+export function writePatches(files: ChangedFile[]): Map<string, string> {
+  const patchesDir = path.join(getContextDir(), 'patches');
+  fs.mkdirSync(patchesDir, { recursive: true });
+
+  const pathMap = new Map<string, string>();
+  for (const file of files) {
+    if (!file.patch) continue;
+    const safeName  = file.filename.replace(/\//g, '__');
+    const patchPath = path.join(patchesDir, `${safeName}.diff`);
+    fs.writeFileSync(patchPath, file.patch);
+    pathMap.set(file.filename, patchPath);
+  }
+  return pathMap;
+}
+
 // ─── Phase 1: Intake & Classification ────────────────────────────────────────
 
 export function classify(_diff: string, _ctx: DiffContext): { tier: RiskTier; agents: string[] } {

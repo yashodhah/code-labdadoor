@@ -3,7 +3,7 @@ import * as nodefs from 'node:fs';
 import * as nodepath from 'node:path';
 import * as nodeos from 'node:os';
 
-import { getContextDir, parseDiffIntoFiles } from '../orchestrator';
+import { getContextDir, parseDiffIntoFiles, writeSharedContext, writePatches } from '../orchestrator';
 
 // ─── Task 1: getContextDir ────────────────────────────────────────────────────
 
@@ -116,5 +116,161 @@ describe('parseDiffIntoFiles', () => {
     expect(result[0].patch).not.toContain('existing');
     expect(result[1].patch).toContain('existing');
     expect(result[1].patch).not.toContain('login');
+  });
+});
+
+// ─── Task 3: writeSharedContext ───────────────────────────────────────────────
+
+function makeTestDir(): { base: string; contextDir: string } {
+  const base = nodefs.mkdtempSync(nodepath.join(nodeos.tmpdir(), 'lb-test-'));
+  return { base, contextDir: nodepath.join(base, 'labdadoor', 'test-run') };
+}
+
+function setEnvToDir(base: string): void {
+  process.env.RUNNER_TEMP   = base;
+  process.env.GITHUB_RUN_ID = 'test-run';
+}
+
+describe('writeSharedContext', () => {
+  let base: string;
+  let contextDir: string;
+  let savedRunnerTemp: string | undefined;
+  let savedRunId: string | undefined;
+
+  beforeEach(() => {
+    savedRunnerTemp = process.env.RUNNER_TEMP;
+    savedRunId      = process.env.GITHUB_RUN_ID;
+    ({ base, contextDir } = makeTestDir());
+    setEnvToDir(base);
+    nodefs.mkdirSync(nodepath.join(contextDir, 'patches'), { recursive: true });
+  });
+
+  afterEach(() => {
+    if (savedRunnerTemp === undefined) delete process.env.RUNNER_TEMP;
+    else process.env.RUNNER_TEMP = savedRunnerTemp;
+    if (savedRunId === undefined) delete process.env.GITHUB_RUN_ID;
+    else process.env.GITHUB_RUN_ID = savedRunId;
+    nodefs.rmSync(base, { recursive: true, force: true });
+  });
+
+  it('writes context.json inside CONTEXT_DIR', () => {
+    const ctx = {
+      pr: { number: 1, title: 'T', author: 'a', description: 'd' },
+      stats: { additions: 10, deletions: 2, filesChanged: 1 },
+      files: [{ filename: 'src/foo.ts', status: 'modified', patch: '+x' }],
+    };
+    const result = writeSharedContext(ctx);
+    expect(result).toBe(nodepath.join(contextDir, 'context.json'));
+    expect(nodefs.existsSync(result)).toBe(true);
+  });
+
+  it('serializes pr and stats fields correctly', () => {
+    const ctx = {
+      pr: { number: 42, title: 'Fix bug', author: 'alice', description: 'desc' },
+      stats: { additions: 5, deletions: 3, filesChanged: 2 },
+      files: [],
+    };
+    writeSharedContext(ctx);
+    const written = JSON.parse(nodefs.readFileSync(nodepath.join(contextDir, 'context.json'), 'utf-8'));
+    expect(written.pr.number).toBe(42);
+    expect(written.pr.author).toBe('alice');
+    expect(written.stats.additions).toBe(5);
+    expect(written.stats.deletions).toBe(3);
+  });
+
+  it('includes absolute patchPath for each file with slashes replaced', () => {
+    const ctx = {
+      pr: { number: 1, title: 'T', author: 'a', description: '' },
+      stats: { additions: 1, deletions: 0, filesChanged: 1 },
+      files: [{ filename: 'src/a/b.ts', status: 'added', patch: '+x' }],
+    };
+    writeSharedContext(ctx);
+    const written = JSON.parse(nodefs.readFileSync(nodepath.join(contextDir, 'context.json'), 'utf-8'));
+    expect(written.files[0].patchPath).toContain('src__a__b.ts.diff');
+    expect(nodepath.isAbsolute(written.files[0].patchPath)).toBe(true);
+  });
+
+  it('does not include raw patch content in context.json', () => {
+    const ctx = {
+      pr: { number: 1, title: 'T', author: 'a', description: '' },
+      stats: { additions: 1, deletions: 0, filesChanged: 1 },
+      files: [{ filename: 'src/foo.ts', status: 'modified', patch: 'SECRET_PATCH_CONTENT' }],
+    };
+    writeSharedContext(ctx);
+    const raw = nodefs.readFileSync(nodepath.join(contextDir, 'context.json'), 'utf-8');
+    expect(raw).not.toContain('SECRET_PATCH_CONTENT');
+  });
+
+  it('produces valid JSON', () => {
+    const ctx = {
+      pr: { number: 1, title: 'T', author: 'a', description: '' },
+      stats: { additions: 0, deletions: 0, filesChanged: 0 },
+      files: [],
+    };
+    writeSharedContext(ctx);
+    expect(() => JSON.parse(nodefs.readFileSync(nodepath.join(contextDir, 'context.json'), 'utf-8'))).not.toThrow();
+  });
+});
+
+// ─── Task 3: writePatches ─────────────────────────────────────────────────────
+
+describe('writePatches', () => {
+  let base: string;
+  let contextDir: string;
+  let savedRunnerTemp: string | undefined;
+  let savedRunId: string | undefined;
+
+  beforeEach(() => {
+    savedRunnerTemp = process.env.RUNNER_TEMP;
+    savedRunId      = process.env.GITHUB_RUN_ID;
+    ({ base, contextDir } = makeTestDir());
+    setEnvToDir(base);
+    nodefs.mkdirSync(contextDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (savedRunnerTemp === undefined) delete process.env.RUNNER_TEMP;
+    else process.env.RUNNER_TEMP = savedRunnerTemp;
+    if (savedRunId === undefined) delete process.env.GITHUB_RUN_ID;
+    else process.env.GITHUB_RUN_ID = savedRunId;
+    nodefs.rmSync(base, { recursive: true, force: true });
+  });
+
+  it('creates the patches subdirectory', () => {
+    writePatches([]);
+    expect(nodefs.existsSync(nodepath.join(contextDir, 'patches'))).toBe(true);
+  });
+
+  it('writes one .diff file per file with patch content', () => {
+    const files = [
+      { filename: 'src/foo.ts', status: 'modified', patch: '@@ diff @@\n+x' },
+      { filename: 'src/bar.ts', status: 'added',    patch: '@@ diff @@\n+y' },
+    ];
+    writePatches(files);
+    expect(nodefs.existsSync(nodepath.join(contextDir, 'patches', 'src__foo.ts.diff'))).toBe(true);
+    expect(nodefs.existsSync(nodepath.join(contextDir, 'patches', 'src__bar.ts.diff'))).toBe(true);
+  });
+
+  it('sanitizes forward slashes to double underscores', () => {
+    writePatches([{ filename: 'a/b/c.ts', status: 'modified', patch: '+x' }]);
+    expect(nodefs.existsSync(nodepath.join(contextDir, 'patches', 'a__b__c.ts.diff'))).toBe(true);
+  });
+
+  it('skips files with empty patch', () => {
+    writePatches([{ filename: 'src/empty.ts', status: 'modified', patch: '' }]);
+    expect(nodefs.existsSync(nodepath.join(contextDir, 'patches', 'src__empty.ts.diff'))).toBe(false);
+  });
+
+  it('returns a Map from filename to absolute patch path', () => {
+    const files = [{ filename: 'src/foo.ts', status: 'modified', patch: '+x' }];
+    const map = writePatches(files);
+    expect(map.has('src/foo.ts')).toBe(true);
+    expect(nodepath.isAbsolute(map.get('src/foo.ts')!)).toBe(true);
+  });
+
+  it('writes the patch content to disk', () => {
+    writePatches([{ filename: 'src/foo.ts', status: 'modified', patch: '+actual content' }]);
+    const content = nodefs.readFileSync(nodepath.join(contextDir, 'patches', 'src__foo.ts.diff'), 'utf-8');
+    expect(content).toBe('+actual content');
   });
 });
