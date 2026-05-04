@@ -73,6 +73,38 @@ export interface CoordinatorReview {
   findings: Omit<SpecialistFinding, 'agent' | 'confidence'>[];
 }
 
+// ─── Context Helpers ─────────────────────────────────────────────────────────
+
+// Exported for testing only
+export function parseDiffIntoFiles(diff: string): ChangedFile[] {
+  // Matches the format written by GitHubVcsProvider.getDiff():
+  //   \n--- FILENAME (STATUS) ---\n
+  // The trailing " ---" distinguishes this from unified diff "--- a/file" headers.
+  const SEPARATOR = /\n--- (.+?) \((added|modified|removed|renamed|copied)\) ---\n/g;
+
+  const boundaries: Array<{ filename: string; status: string; contentStart: number }> = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = SEPARATOR.exec(diff)) !== null) {
+    boundaries.push({
+      filename:     match[1],
+      status:       match[2],
+      contentStart: match.index + match[0].length,
+    });
+  }
+
+  return boundaries.map((b, i) => {
+    const contentEnd = i + 1 < boundaries.length
+      ? diff.lastIndexOf('\n--- ', boundaries[i + 1].contentStart)
+      : diff.length;
+    return {
+      filename: b.filename,
+      status:   b.status,
+      patch:    diff.slice(b.contentStart, contentEnd).trim(),
+    };
+  });
+}
+
 // ─── Phase 1: Intake & Classification ────────────────────────────────────────
 
 export function classify(_diff: string, _ctx: DiffContext): { tier: RiskTier; agents: string[] } {
