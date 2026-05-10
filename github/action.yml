@@ -1,0 +1,29 @@
+name: "CodeLabdadoor Review"
+description: "AI-powered code review for pull requests"
+branding:
+  icon: "eye"
+  color: "orange"
+
+inputs:
+  anthropic_api_key:
+    description: "Anthropic API key for the review models"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: latest
+
+    - name: Install dependencies
+      shell: bash
+      run: bun install --frozen-lockfile
+
+    - name: Run labdadoor review
+      shell: bash
+      run: bun ${{ github.action_path }}/index.ts
+      env:
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
