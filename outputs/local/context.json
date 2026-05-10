@@ -1,0 +1,36 @@
+{
+  "pr": {
+    "number": 28,
+    "title": "feat: add permissionMode control (approveAll, denyShell, readOnly)",
+    "author": "Copilot",
+    "description": "The node hardcoded `approveAll` for every session, giving the agent unrestricted access to shell, file, network, and all other operations. A `permissionMode` parameter in `Additional Fields` lets workflow authors enforce a safety policy without touching the SDK's permission callback API.\n\n## Changes\n\n### `session.ts`\n- Exports `PermissionMode` type: `'approveAll' | 'denyShell' | 'readOnly'`\n- Adds `buildPermissionHandler(mode)` factory:\n  - `approveAll` → SDK's built-in `approveAll` (no behaviour change)\n  - `denyShell` → denies `kind === 'shell'`, approves everything else\n  - `readOnly` → approves only `kind === 'read'`, denies all other kinds\n- `executeSharedSession` / `executeIsolatedSession` accept an optional `permissionMode` (default `'approveAll'`), passed to `createSession`\n\n### `CopilotAgent.node.ts`\n- Adds `Additional Fields` collection containing a `permissionMode` dropdown with per-option use-case descriptions\n- Reads `permissionMode` from `additionalFields` (falls back to `'approveAll'`) and forwards it to the session functions\n\n### `__tests__/session.test.ts` *(new)*\n- 14 unit tests covering `buildPermissionHandler` across all three modes and all SDK `PermissionRequest.kind` values (`shell`, `read`, `write`, `mcp`, `url`, `custom-tool`)\n\n## Permission handler\n\n```typescript\nexport function buildPermissionHandler(mode: PermissionMode): PermissionHandler {\n    if (mode === 'approveAll') return approveAll;\n    if (mode === 'denyShell')\n        return (req) =>\n            req.kind === 'shell'\n                ? { kind: 'denied-interactively-by-user' }\n                : { kind: 'approved' };\n    // readOnly\n    return (req) =>\n        req.kind === 'read' ? { kind: 'approved' } : { kind: 'denied-interactively-by-user' };\n}\n```\n\nDenied permissions surface as errors in the item output (`success: false`) via the existing `catch` blocks in both session functions — no unhandled exceptions."
+  },
+  "stats": {
+    "additions": 182,
+    "deletions": 5,
+    "filesChanged": 3
+  },
+  "files": [
+    {
+      "filename": "nodes/CopilotAgent/CopilotAgent.node.ts",
+      "status": "modified",
+      "additions": 44,
+      "deletions": 3,
+      "patchPath": "/Users/yashodhah/ai_scout/ai-reviewer/code-labdadoor/outputs/local/patches/nodes/CopilotAgent/CopilotAgent.node.ts.diff"
+    },
+    {
+      "filename": "nodes/CopilotAgent/__tests__/session.test.ts",
+      "status": "added",
+      "additions": 119,
+      "deletions": 0,
+      "patchPath": "/Users/yashodhah/ai_scout/ai-reviewer/code-labdadoor/outputs/local/patches/nodes/CopilotAgent/__tests__/session.test.ts.diff"
+    },
+    {
+      "filename": "nodes/CopilotAgent/session.ts",
+      "status": "modified",
+      "additions": 19,
+      "deletions": 2,
+      "patchPath": "/Users/yashodhah/ai_scout/ai-reviewer/code-labdadoor/outputs/local/patches/nodes/CopilotAgent/session.ts.diff"
+    }
+  ]
+}

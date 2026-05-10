@@ -1,4 +1,4 @@
-// ─── Diff Context (shared type, defined here to avoid circular imports) ──────
+// ─── Diff Context ────────────────────────────────────────────────────────────
 
 export interface DiffContext {
   prNumber:    number;
@@ -20,14 +20,14 @@ export interface DiffStats {
 
 export interface VcsConfig {
   token:          string;
-  projectId:      string;
-  mrIid:          number;
-  targetBranch?:  string;
-  sourceBranch?:  string;
-  mrTitle?:       string;
-  mrDescription?: string;
-  authorUsername?: string;
-  changedFiles?:  string[];
+  repo:           string;           // owner/repo format
+  prNumber:       number;
+  baseBranch?:    string;
+  headBranch?:    string;
+  title?:         string;
+  description?:   string;
+  author?:        string;
+  files?:         string[];
   diffStats?:     DiffStats;
 }
 
@@ -57,11 +57,11 @@ export interface ReviewConfig {
 
 export function toDiffContext(vcs: VcsConfig): DiffContext {
   return {
-    prNumber:    vcs.mrIid,
-    title:       vcs.mrTitle       ?? '',
-    author:      vcs.authorUsername ?? '',
-    description: vcs.mrDescription  ?? '',
-    files:       vcs.changedFiles   ?? [],
+    prNumber:    vcs.prNumber,
+    title:       vcs.title       ?? '',
+    author:      vcs.author      ?? '',
+    description: vcs.description ?? '',
+    files:       vcs.files       ?? [],
     additions:   vcs.diffStats?.additions   ?? 0,
     deletions:   vcs.diffStats?.deletions   ?? 0,
   };

@@ -1,6 +1,6 @@
 import * as path from 'path';
-import { loadReviewConfig } from './configs/runtime-config';
-import { runCodeReview } from './reviewer/orchestrator';
+import { runCodeReview } from './reviewer';
+import { loadReviewConfig } from './reviewer/runtime-config';
 
 function loadConfig() {
   const configPath = path.join(__dirname, 'configs', 'settings.json');

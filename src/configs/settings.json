@@ -1,8 +1,8 @@
 {
   "vcs": {
     "token": "",
-    "projectId": "",
-    "mrIid": 0
+    "repo": "",
+    "prNumber": 0
   },
   "models": {
     "top": {
