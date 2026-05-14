@@ -6,22 +6,26 @@
   },
   "models": {
     "top": {
-      "id": "claude-opus-4-7",
+      "id": "claude-sonnet-4.6",
       "provider": "anthropic",
-      "fallbackChain": ["claude-opus-4-6", "claude-opus-4-5"],
+      "fallbackChain": ["claude-sonnet-4.5", "auto"],
       "usedFor": "coordinator"
     },
     "standard": {
-      "id": "claude-sonnet-4",
+      "id": "claude-sonnet-4.5",
       "provider": "anthropic",
-      "fallbackChain": ["claude-sonnet-3-7"],
+      "fallbackChain": ["gpt-5.4", "auto"],
       "usedFor": "security, performance, code-quality"
     },
     "lightweight": {
-      "id": "claude-haiku-4-5",
+      "id": "claude-haiku-4.5",
       "provider": "anthropic",
-      "fallbackChain": ["claude-haiku-4-5"],
+      "fallbackChain": ["auto"],
       "usedFor": "docs, release, agents-md"
+    },
+    "available": {
+      "anthropic": ["auto", "claude-sonnet-4-6", "claude-sonnet-4-5", "claude-haiku-4-5"],
+      "openai": ["gpt-5.4", "gpt-5.3-codex", "gpt-5.2-codex", "gpt-5.2", "gpt-5.4-mini", "gpt-5-mini", "gpt-4.1"]
     }
   }
 }

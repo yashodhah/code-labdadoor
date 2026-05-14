@@ -29,6 +29,7 @@ function resolvePrNumber(rawPrNumber: number | undefined): number {
 
 function resolveVcsConfig(rawVcs: VcsConfig | undefined): VcsConfig {
   const token = firstDefined(
+    process.env.GH_TOKEN,
     process.env.GITHUB_TOKEN,
     process.env.GITHUB_ACCESS_TOKEN,
     rawVcs?.token
@@ -40,7 +41,7 @@ function resolveVcsConfig(rawVcs: VcsConfig | undefined): VcsConfig {
   const prNumber = resolvePrNumber(rawVcs?.prNumber);
 
   if (!token) {
-    throw new Error('Missing GitHub token. Set GITHUB_TOKEN (or GITHUB_ACCESS_TOKEN) at runtime.');
+    throw new Error('Missing GitHub token. Set GH_TOKEN, GITHUB_TOKEN, or GITHUB_ACCESS_TOKEN at runtime.');
   }
 
   if (!repo) {
