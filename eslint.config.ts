@@ -33,6 +33,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ["dist/**", "node_modules/**", "action/**"],
+    ignores: ["dist/**", "node_modules/**", "action/**"], // action/ has no tsconfig, excluded from type-aware linting
   },
 );
