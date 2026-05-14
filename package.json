@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "review": "bun src/index.ts",
-    "lint": "eslint --flag unstable_native_nodejs_ts_config src/ github/"
+    "lint": "eslint --flag unstable_native_nodejs_ts_config src/ github/",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@github/copilot-sdk": "latest",
