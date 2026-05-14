@@ -1,6 +1,7 @@
 # Consistency Review
 
 ## Overview
+
 Code should follow established patterns and conventions. When style guides have recommendations (not requirements), judge whether to follow recommendations or existing code patterns.
 
 ## Key Points to Check

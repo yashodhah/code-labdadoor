@@ -14,15 +14,16 @@
 
 ### Agent Registry (5 agents)
 
-| Agent | Trigger | Model tier |
-|-------|---------|------------|
-| `quality` | always | standard |
-| `security` | path-patterns: `auth/`, `crypto/`, `middleware/`, `token`, `secret` | standard |
-| `performance` | AGENTS.md rules first, LLM fallback | standard |
-| `docs` | path-patterns: `.md`, `.mdx`, `README`, `docs/` | lightweight |
+| Agent              | Trigger                                                                                                   | Model tier                    |
+| ------------------ | --------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `quality`          | always                                                                                                    | standard                      |
+| `security`         | path-patterns: `auth/`, `crypto/`, `middleware/`, `token`, `secret`                                       | standard                      |
+| `performance`      | AGENTS.md rules first, LLM fallback                                                                       | standard                      |
+| `docs`             | path-patterns: `.md`, `.mdx`, `README`, `docs/`                                                           | lightweight                   |
 | `agents-freshness` | path-patterns: `src/**/*.ts` (D-check) + `AGENTS.md`, `.github/copilot*` (C-check); `llmClassified: true` | lightweight (D), standard (C) |
 
 The `agents-freshness` agent is **one registry entry** that handles two checks internally:
+
 - **C-check**: instruction files changed in the PR → audit them for quality/security
 - **D-check**: source code changed → ask "does this change require updating AGENTS.md/instructions?"
   - Input to lightweight model: file names + PR title + current AGENTS.md content (from base branch)
@@ -45,7 +46,7 @@ Add `llmClassified?: boolean` to `TriggerRule`:
 export interface TriggerRule {
   always?: boolean;
   pathPatterns?: string[];
-  llmClassified?: boolean;  // included in the one-shot LLM fallback call
+  llmClassified?: boolean; // included in the one-shot LLM fallback call
 }
 ```
 
@@ -85,24 +86,25 @@ No findings: `<findings/>`
 
 ## File Structure
 
-| File | Change |
-|------|--------|
-| `github/index.ts` | Complete rewrite — labdadoor review engine entry point |
-| `github/action.yml` | Replace binary install with `oven-sh/setup-bun` + `bun index.ts` |
-| `github/README.md` | Rewrite for labdadoor (review-only workflow) |
-| `tsconfig.json` | Ensure `github/index.ts` is in `include` |
-| `github/index.test.ts` | New test file for pure helper functions |
-| `src/reviewer/agent-registry.ts` | Add performance + agents-freshness agents |
-| `src/types/agent.ts` | Add `llmClassified?: boolean` to `TriggerRule` |
-| `src/reviewer/pre-review.ts` | Make `classify()` async; add AGENTS.md fetch + LLM fallback |
+| File                             | Change                                                            |
+| -------------------------------- | ----------------------------------------------------------------- |
+| `github/index.ts`                | Complete rewrite — labdadoor review engine entry point            |
+| `github/action.yml`              | Replace binary install with `oven-sh/setup-bun` + `bun index.ts`  |
+| `github/README.md`               | Rewrite for labdadoor (review-only workflow)                      |
+| `tsconfig.json`                  | Ensure `github/index.ts` is in `include`                          |
+| `github/index.test.ts`           | New test file for pure helper functions                           |
+| `src/reviewer/agent-registry.ts` | Add performance + agents-freshness agents                         |
+| `src/types/agent.ts`             | Add `llmClassified?: boolean` to `TriggerRule`                    |
+| `src/reviewer/pre-review.ts`     | Make `classify()` async; add AGENTS.md fetch + LLM fallback       |
 | `src/reviewer/agent-symphony.ts` | Rewrite orchestration: one client, sub-agents, XML parsing, dedup |
-| `src/reviewer/github.ts` | Add `fetchFileFromBase(path)` method |
+| `src/reviewer/github.ts`         | Add `fetchFileFromBase(path)` method                              |
 
 ---
 
 ## Task 1: Extend Types
 
 **Files:**
+
 - Modify: `src/types/agent.ts`
 
 - [ ] **Step 1: Add `llmClassified` to `TriggerRule`**
@@ -127,6 +129,7 @@ git commit -m "feat: add llmClassified trigger to TriggerRule"
 ## Task 2: Expand Agent Registry
 
 **Files:**
+
 - Modify: `src/reviewer/agent-registry.ts`
 
 - [ ] **Step 1: Add performance and agents-freshness agents**
@@ -134,60 +137,56 @@ git commit -m "feat: add llmClassified trigger to TriggerRule"
 ```typescript
 export const AGENT_REGISTRY: AgentDefinition[] = [
   {
-    name: 'quality',
-    category: 'quality',
-    modelTier: 'standard',
+    name: "quality",
+    category: "quality",
+    modelTier: "standard",
     trigger: { always: true },
     instructionFiles: [
-      'src/assets/review-instructions/01-design.md',
-      'src/assets/review-instructions/02-functionality.md',
-      'src/assets/review-instructions/03-complexity.md',
+      "src/assets/review-instructions/01-design.md",
+      "src/assets/review-instructions/02-functionality.md",
+      "src/assets/review-instructions/03-complexity.md",
     ],
   },
   {
-    name: 'security',
-    category: 'security',
-    modelTier: 'standard',
+    name: "security",
+    category: "security",
+    modelTier: "standard",
     trigger: {
-      pathPatterns: ['auth/', 'crypto/', 'middleware', 'validation', 'password', 'token', 'secret'],
+      pathPatterns: ["auth/", "crypto/", "middleware", "validation", "password", "token", "secret"],
     },
     instructionFiles: [
-      'src/assets/review-instructions/02-functionality.md',
-      'src/assets/review-instructions/10-every-line.md',
+      "src/assets/review-instructions/02-functionality.md",
+      "src/assets/review-instructions/10-every-line.md",
     ],
   },
   {
-    name: 'performance',
-    category: 'performance',
-    modelTier: 'standard',
+    name: "performance",
+    category: "performance",
+    modelTier: "standard",
     trigger: { llmClassified: true },
     instructionFiles: [
-      'src/assets/review-instructions/02-functionality.md',
-      'src/assets/review-instructions/03-complexity.md',
+      "src/assets/review-instructions/02-functionality.md",
+      "src/assets/review-instructions/03-complexity.md",
     ],
   },
   {
-    name: 'docs',
-    category: 'docs',
-    modelTier: 'lightweight',
+    name: "docs",
+    category: "docs",
+    modelTier: "lightweight",
     trigger: {
-      pathPatterns: ['\\.md$', '\\.mdx$', 'README', 'CHANGELOG', 'docs/'],
+      pathPatterns: ["\\.md$", "\\.mdx$", "README", "CHANGELOG", "docs/"],
     },
-    instructionFiles: [
-      'src/assets/review-instructions/09-documentation.md',
-    ],
+    instructionFiles: ["src/assets/review-instructions/09-documentation.md"],
   },
   {
-    name: 'agents-freshness',
-    category: 'quality',
-    modelTier: 'lightweight',
+    name: "agents-freshness",
+    category: "quality",
+    modelTier: "lightweight",
     trigger: {
-      pathPatterns: ['src/', 'AGENTS.md', '.github/copilot'],
+      pathPatterns: ["src/", "AGENTS.md", ".github/copilot"],
       llmClassified: true,
     },
-    instructionFiles: [
-      'src/assets/review-instructions/09-documentation.md',
-    ],
+    instructionFiles: ["src/assets/review-instructions/09-documentation.md"],
   },
 ];
 ```
@@ -204,6 +203,7 @@ git commit -m "feat: add performance and agents-freshness to agent registry"
 ## Task 3: Add `fetchFileFromBase` to VCS Provider
 
 **Files:**
+
 - Modify: `src/reviewer/github.ts`
 
 - [ ] **Step 1: Add method**
@@ -222,6 +222,7 @@ git commit -m "feat: add fetchFileFromBase to GitHubVcsProvider"
 ## Task 4: Make `classify()` Async with AGENTS.md + LLM Fallback
 
 **Files:**
+
 - Modify: `src/reviewer/pre-review.ts`
 
 - [ ] **Step 1: Update signature and implementation**
@@ -230,11 +231,12 @@ git commit -m "feat: add fetchFileFromBase to GitHubVcsProvider"
 export async function classify(
   ctx: DiffContext,
   changedFiles: ChangedFileMetadata[],
-  agentRules: string | null   // raw AGENTS.md content from base branch, null if absent
-): Promise<{ tier: RiskTier; agents: string[] }>
+  agentRules: string | null, // raw AGENTS.md content from base branch, null if absent
+): Promise<{ tier: RiskTier; agents: string[] }>;
 ```
 
 Logic:
+
 1. Run path-pattern matching against `changedFiles` for all agents with `pathPatterns` or `always`
 2. For agents with `llmClassified: true` not already matched: make one lightweight model call
    - Input: file names + PR title + `agentRules` content
@@ -245,7 +247,7 @@ Logic:
 - [ ] **Step 2: Update `runCodeReview()` caller**
 
 ```typescript
-const agentRules = await vcs.fetchFileFromBase('AGENTS.md');
+const agentRules = await vcs.fetchFileFromBase("AGENTS.md");
 const classification = await classify(ctx, changedFiles, agentRules);
 ```
 
@@ -261,11 +263,13 @@ git commit -m "feat: make classify() async with AGENTS.md-first + LLM fallback"
 ## Task 5: Rewrite Orchestration (agent-symphony.ts)
 
 **Files:**
+
 - Modify: `src/reviewer/agent-symphony.ts`
 
 - [ ] **Step 1: Rewrite `orchestrateAgentsImpl`**
 
 Replace `Promise.all` of parallel sessions with:
+
 1. One `CopilotClient` + one orchestrator session
 2. Orchestrator system prompt: coordinator role, XML output contract, dedup instructions
 3. Orchestrator user prompt: "Spawn exactly these agents: [names]. Pass each agent its scoped patch content and shared context. Collect XML findings."
@@ -275,6 +279,7 @@ Replace `Promise.all` of parallel sessions with:
 - [ ] **Step 2: Replace JSON parser with XML parser**
 
 Replace `parseAgentFindings` (JSON) with `parseXmlFindings`:
+
 - Extract `<finding>` elements from `<findings>` block
 - Map each element's child tags to `SpecialistFinding` fields
 - Validate severity/category/confidence against allowed values; apply defaults on invalid
@@ -283,6 +288,7 @@ Replace `parseAgentFindings` (JSON) with `parseXmlFindings`:
 - [ ] **Step 3: Implement `consolidateFindings()`**
 
 In `src/reviewer/index.ts`:
+
 - Flatten all per-agent findings into a single list
 - Sort by file + line_start
 - For overlapping line ranges on the same file: keep higher-severity finding, discard lower
@@ -300,6 +306,7 @@ git commit -m "feat: rewrite orchestration — one client, sub-agents, XML outpu
 ## Task 6: Update `tsconfig.json`
 
 **Files:**
+
 - Modify: `tsconfig.json`
 
 - [ ] **Step 1: Ensure `github/index.ts` is included**
@@ -318,17 +325,18 @@ git commit -m "chore: fix tsconfig includes for github/index.ts"
 ## Task 7: Rewrite `github/index.ts`
 
 **Files:**
+
 - Modify: `github/index.ts`
 
 - [ ] **Step 1: Write the complete new `github/index.ts`**
 
 ```typescript
-import * as fs from 'node:fs';
-import { Octokit } from '@octokit/rest';
-import { runCodeReview } from '../src/reviewer/index';
-import type { ReviewConfig, VcsConfig } from '../src/types/review-config';
-import type { CoordinatorReview, Decision } from '../src/types/findings';
-import settingsJson from '../src/configs/settings.json';
+import * as fs from "node:fs";
+import { Octokit } from "@octokit/rest";
+import { runCodeReview } from "../src/reviewer/index";
+import type { ReviewConfig, VcsConfig } from "../src/types/review-config";
+import type { CoordinatorReview, Decision } from "../src/types/findings";
+import settingsJson from "../src/configs/settings.json";
 
 // ─── Event Payload Shapes ─────────────────────────────────────────────────────
 
@@ -363,19 +371,19 @@ interface PullRequestReviewCommentPayload {
 
 function readEventPayload(): unknown {
   const eventPath = process.env.GITHUB_EVENT_PATH;
-  if (!eventPath) throw new Error('GITHUB_EVENT_PATH is not set');
-  return JSON.parse(fs.readFileSync(eventPath, 'utf-8'));
+  if (!eventPath) throw new Error("GITHUB_EVENT_PATH is not set");
+  return JSON.parse(fs.readFileSync(eventPath, "utf-8"));
 }
 
 function getToken(): string {
   const token = process.env.GITHUB_TOKEN;
-  if (!token) throw new Error('GITHUB_TOKEN is not set');
+  if (!token) throw new Error("GITHUB_TOKEN is not set");
   return token;
 }
 
 function getRepository(): string {
   const repo = process.env.GITHUB_REPOSITORY;
-  if (!repo) throw new Error('GITHUB_REPOSITORY is not set');
+  if (!repo) throw new Error("GITHUB_REPOSITORY is not set");
   return repo; // "owner/repo"
 }
 
@@ -392,23 +400,23 @@ interface ReviewTarget {
 }
 
 function resolveReviewTarget(): ReviewTarget | null {
-  const eventName = process.env.GITHUB_EVENT_NAME ?? '';
+  const eventName = process.env.GITHUB_EVENT_NAME ?? "";
   const payload = readEventPayload();
 
-  if (eventName === 'pull_request') {
+  if (eventName === "pull_request") {
     const p = payload as PullRequestPayload;
-    if (!['opened', 'synchronize', 'reopened'].includes(p.action)) return null;
+    if (!["opened", "synchronize", "reopened"].includes(p.action)) return null;
     return { prNumber: p.pull_request.number };
   }
 
-  if (eventName === 'issue_comment') {
+  if (eventName === "issue_comment") {
     const p = payload as IssueCommentPayload;
     if (!p.issue.pull_request) return null;
     if (!isLabdadoorCommand(p.comment.body)) return null;
     return { prNumber: p.issue.number };
   }
 
-  if (eventName === 'pull_request_review_comment') {
+  if (eventName === "pull_request_review_comment") {
     const p = payload as PullRequestReviewCommentPayload;
     if (!isLabdadoorCommand(p.comment.body)) return null;
     return { prNumber: p.pull_request.number };
@@ -419,31 +427,35 @@ function resolveReviewTarget(): ReviewTarget | null {
 
 // ─── Review Formatting ────────────────────────────────────────────────────────
 
-type GitHubReviewEvent = 'APPROVE' | 'COMMENT' | 'REQUEST_CHANGES';
+type GitHubReviewEvent = "APPROVE" | "COMMENT" | "REQUEST_CHANGES";
 
 export function toGitHubEvent(decision: Decision): GitHubReviewEvent {
   switch (decision) {
-    case 'approve':   return 'APPROVE';
-    case 'comment':   return 'COMMENT';
-    case 'unapprove': return 'COMMENT';
-    case 'block':     return 'REQUEST_CHANGES';
+    case "approve":
+      return "APPROVE";
+    case "comment":
+      return "COMMENT";
+    case "unapprove":
+      return "COMMENT";
+    case "block":
+      return "REQUEST_CHANGES";
   }
 }
 
 const DECISION_LABEL: Record<Decision, string> = {
-  approve:   '**Decision: APPROVED**',
-  comment:   '**Decision: COMMENT**',
-  unapprove: '**Decision: UNAPPROVE** (flagging new concerns)',
-  block:     '**Decision: CHANGES REQUESTED**',
+  approve: "**Decision: APPROVED**",
+  comment: "**Decision: COMMENT**",
+  unapprove: "**Decision: UNAPPROVE** (flagging new concerns)",
+  block: "**Decision: CHANGES REQUESTED**",
 };
 
 export function formatReviewBody(result: CoordinatorReview): string {
-  const findingsRows = result.findings.map((f, i) =>
-    `| ${i + 1} | ${f.severity} | \`${f.file}:${f.line_start}\` | ${f.title} |`
+  const findingsRows = result.findings.map(
+    (f, i) => `| ${i + 1} | ${f.severity} | \`${f.file}:${f.line_start}\` | ${f.title} |`,
   );
   const findingsTable = findingsRows.length
-    ? `\n\n### Findings\n| # | Severity | File | Title |\n|---|----------|------|-------|\n${findingsRows.join('\n')}`
-    : '';
+    ? `\n\n### Findings\n| # | Severity | File | Title |\n|---|----------|------|-------|\n${findingsRows.join("\n")}`
+    : "";
 
   return `${DECISION_LABEL[result.decision]}\n\n${result.summary}${findingsTable}`;
 }
@@ -453,13 +465,13 @@ export function formatReviewBody(result: CoordinatorReview): string {
 async function main(): Promise<void> {
   const target = resolveReviewTarget();
   if (!target) {
-    console.log('No labdadoor trigger matched — exiting cleanly.');
+    console.log("No labdadoor trigger matched — exiting cleanly.");
     return;
   }
 
   const token = getToken();
   const repo = getRepository();
-  const [owner, repoName] = repo.split('/');
+  const [owner, repoName] = repo.split("/");
 
   const octokit = new Octokit({ auth: token });
 
@@ -474,15 +486,15 @@ async function main(): Promise<void> {
   const vcsConfig: VcsConfig = {
     token,
     repo,
-    prNumber:    pr.number,
-    title:       pr.title,
-    description: pr.body ?? '',
-    author:      pr.user?.login ?? 'unknown',
-    baseBranch:  pr.base.ref,
-    headBranch:  pr.head.ref,
+    prNumber: pr.number,
+    title: pr.title,
+    description: pr.body ?? "",
+    author: pr.user?.login ?? "unknown",
+    baseBranch: pr.base.ref,
+    headBranch: pr.head.ref,
     diffStats: {
-      additions:    pr.additions,
-      deletions:    pr.deletions,
+      additions: pr.additions,
+      deletions: pr.deletions,
       filesChanged: pr.changed_files,
     },
   };
@@ -497,7 +509,7 @@ async function main(): Promise<void> {
     result = await runCodeReview(config);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error('runCodeReview failed:', msg);
+    console.error("runCodeReview failed:", msg);
     await octokit.issues.createComment({
       owner,
       repo: repoName,
@@ -507,7 +519,9 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`Review complete — decision: ${result.decision}, findings: ${result.findings.length}`);
+  console.log(
+    `Review complete — decision: ${result.decision}, findings: ${result.findings.length}`,
+  );
 
   await octokit.pulls.createReview({
     owner,
@@ -517,7 +531,7 @@ async function main(): Promise<void> {
     body: formatReviewBody(result),
   });
 
-  console.log('Review posted to GitHub.');
+  console.log("Review posted to GitHub.");
 }
 
 main().catch((err) => {
@@ -544,52 +558,64 @@ git commit -m "feat: rewrite github/index.ts with corrected VcsConfig fields and
 ## Task 8: Write Tests for Pure Helpers
 
 **Files:**
+
 - Create: `github/index.test.ts`
 
 - [ ] **Step 1: Write the test file**
 
 ```typescript
-import { describe, test, expect } from 'bun:test';
-import { isLabdadoorCommand, toGitHubEvent, formatReviewBody } from './index';
+import { describe, test, expect } from "bun:test";
+import { isLabdadoorCommand, toGitHubEvent, formatReviewBody } from "./index";
 
-describe('isLabdadoorCommand', () => {
-  test('matches /labdadoor at start', () => expect(isLabdadoorCommand('/labdadoor please review')).toBe(true));
-  test('matches /lb shorthand', () => expect(isLabdadoorCommand('/lb')).toBe(true));
-  test('matches /lb mid-sentence', () => expect(isLabdadoorCommand('hey /lb can you check?')).toBe(true));
-  test('rejects /labdadoorx', () => expect(isLabdadoorCommand('/labdadoorx')).toBe(false));
-  test('rejects unrelated comment', () => expect(isLabdadoorCommand('looks good to me')).toBe(false));
+describe("isLabdadoorCommand", () => {
+  test("matches /labdadoor at start", () =>
+    expect(isLabdadoorCommand("/labdadoor please review")).toBe(true));
+  test("matches /lb shorthand", () => expect(isLabdadoorCommand("/lb")).toBe(true));
+  test("matches /lb mid-sentence", () =>
+    expect(isLabdadoorCommand("hey /lb can you check?")).toBe(true));
+  test("rejects /labdadoorx", () => expect(isLabdadoorCommand("/labdadoorx")).toBe(false));
+  test("rejects unrelated comment", () =>
+    expect(isLabdadoorCommand("looks good to me")).toBe(false));
 });
 
-describe('toGitHubEvent', () => {
-  test('approve  -> APPROVE',         () => expect(toGitHubEvent('approve')).toBe('APPROVE'));
-  test('comment  -> COMMENT',         () => expect(toGitHubEvent('comment')).toBe('COMMENT'));
-  test('unapprove-> COMMENT',         () => expect(toGitHubEvent('unapprove')).toBe('COMMENT'));
-  test('block    -> REQUEST_CHANGES', () => expect(toGitHubEvent('block')).toBe('REQUEST_CHANGES'));
+describe("toGitHubEvent", () => {
+  test("approve  -> APPROVE", () => expect(toGitHubEvent("approve")).toBe("APPROVE"));
+  test("comment  -> COMMENT", () => expect(toGitHubEvent("comment")).toBe("COMMENT"));
+  test("unapprove-> COMMENT", () => expect(toGitHubEvent("unapprove")).toBe("COMMENT"));
+  test("block    -> REQUEST_CHANGES", () => expect(toGitHubEvent("block")).toBe("REQUEST_CHANGES"));
 });
 
-describe('formatReviewBody', () => {
-  test('includes decision label and summary', () => {
-    const body = formatReviewBody({ decision: 'approve', summary: 'All good.', findings: [] });
-    expect(body).toContain('**Decision: APPROVED**');
-    expect(body).toContain('All good.');
+describe("formatReviewBody", () => {
+  test("includes decision label and summary", () => {
+    const body = formatReviewBody({ decision: "approve", summary: "All good.", findings: [] });
+    expect(body).toContain("**Decision: APPROVED**");
+    expect(body).toContain("All good.");
   });
-  test('includes findings table when present', () => {
+  test("includes findings table when present", () => {
     const body = formatReviewBody({
-      decision: 'block',
-      summary: 'Issues found.',
-      findings: [{
-        id: '1', severity: 'critical', category: 'security',
-        file: 'src/auth.ts', line_start: 10, line_end: 12,
-        title: 'SQL injection', description: 'Unsanitized input.', suggestion: 'Use parameterized queries.',
-      }],
+      decision: "block",
+      summary: "Issues found.",
+      findings: [
+        {
+          id: "1",
+          severity: "critical",
+          category: "security",
+          file: "src/auth.ts",
+          line_start: 10,
+          line_end: 12,
+          title: "SQL injection",
+          description: "Unsanitized input.",
+          suggestion: "Use parameterized queries.",
+        },
+      ],
     });
-    expect(body).toContain('### Findings');
-    expect(body).toContain('src/auth.ts:10');
-    expect(body).toContain('SQL injection');
+    expect(body).toContain("### Findings");
+    expect(body).toContain("src/auth.ts:10");
+    expect(body).toContain("SQL injection");
   });
-  test('no findings table when empty', () => {
-    const body = formatReviewBody({ decision: 'comment', summary: 'Minor notes.', findings: [] });
-    expect(body).not.toContain('### Findings');
+  test("no findings table when empty", () => {
+    const body = formatReviewBody({ decision: "comment", summary: "Minor notes.", findings: [] });
+    expect(body).not.toContain("### Findings");
   });
 });
 ```

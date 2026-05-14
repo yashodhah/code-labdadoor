@@ -1,6 +1,7 @@
 # Naming Review
 
 ## Overview
+
 Good names are crucial for code readability and maintainability. Names should fully communicate what something is or does without being unnecessarily long.
 
 ## Key Points to Check

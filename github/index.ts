@@ -1,9 +1,9 @@
-import * as fs from 'node:fs';
-import { Octokit } from '@octokit/rest';
-import { runCodeReview } from '../src/reviewer/index';
-import type { ReviewConfig, VcsConfig } from '../src/types/review-config';
-import type { CoordinatorReview, Decision } from '../src/types/findings';
-import settingsJson from '../src/configs/settings.json';
+import * as fs from "node:fs";
+import { Octokit } from "@octokit/rest";
+import { runCodeReview } from "../src/reviewer/index";
+import type { ReviewConfig, VcsConfig } from "../src/types/review-config";
+import type { CoordinatorReview, Decision } from "../src/types/findings";
+import settingsJson from "../src/configs/settings.json";
 
 // ─── Event Payload Shapes ─────────────────────────────────────────────────────
 
@@ -38,19 +38,19 @@ interface PullRequestReviewCommentPayload {
 
 function readEventPayload(): unknown {
   const eventPath = process.env.GITHUB_EVENT_PATH;
-  if (!eventPath) throw new Error('GITHUB_EVENT_PATH is not set');
-  return JSON.parse(fs.readFileSync(eventPath, 'utf-8'));
+  if (!eventPath) throw new Error("GITHUB_EVENT_PATH is not set");
+  return JSON.parse(fs.readFileSync(eventPath, "utf-8"));
 }
 
 function getToken(): string {
   const token = process.env.GITHUB_TOKEN;
-  if (!token) throw new Error('GITHUB_TOKEN is not set');
+  if (!token) throw new Error("GITHUB_TOKEN is not set");
   return token;
 }
 
 function getRepository(): string {
   const repo = process.env.GITHUB_REPOSITORY;
-  if (!repo) throw new Error('GITHUB_REPOSITORY is not set');
+  if (!repo) throw new Error("GITHUB_REPOSITORY is not set");
   return repo;
 }
 
@@ -67,23 +67,23 @@ interface ReviewTarget {
 }
 
 function resolveReviewTarget(): ReviewTarget | null {
-  const eventName = process.env.GITHUB_EVENT_NAME ?? '';
+  const eventName = process.env.GITHUB_EVENT_NAME ?? "";
   const payload = readEventPayload();
 
-  if (eventName === 'pull_request') {
+  if (eventName === "pull_request") {
     const p = payload as PullRequestPayload;
-    if (!['opened', 'synchronize', 'reopened'].includes(p.action)) return null;
+    if (!["opened", "synchronize", "reopened"].includes(p.action)) return null;
     return { prNumber: p.pull_request.number };
   }
 
-  if (eventName === 'issue_comment') {
+  if (eventName === "issue_comment") {
     const p = payload as IssueCommentPayload;
     if (!p.issue.pull_request) return null;
     if (!isLabdadoorCommand(p.comment.body)) return null;
     return { prNumber: p.issue.number };
   }
 
-  if (eventName === 'pull_request_review_comment') {
+  if (eventName === "pull_request_review_comment") {
     const p = payload as PullRequestReviewCommentPayload;
     if (!isLabdadoorCommand(p.comment.body)) return null;
     return { prNumber: p.pull_request.number };
@@ -94,31 +94,35 @@ function resolveReviewTarget(): ReviewTarget | null {
 
 // ─── Review Formatting ────────────────────────────────────────────────────────
 
-type GitHubReviewEvent = 'APPROVE' | 'COMMENT' | 'REQUEST_CHANGES';
+type GitHubReviewEvent = "APPROVE" | "COMMENT" | "REQUEST_CHANGES";
 
 export function toGitHubEvent(decision: Decision): GitHubReviewEvent {
   switch (decision) {
-    case 'approve':   return 'APPROVE';
-    case 'comment':   return 'COMMENT';
-    case 'unapprove': return 'COMMENT';
-    case 'block':     return 'REQUEST_CHANGES';
+    case "approve":
+      return "APPROVE";
+    case "comment":
+      return "COMMENT";
+    case "unapprove":
+      return "COMMENT";
+    case "block":
+      return "REQUEST_CHANGES";
   }
 }
 
 const DECISION_LABEL: Record<Decision, string> = {
-  approve:   '**Decision: APPROVED**',
-  comment:   '**Decision: COMMENT**',
-  unapprove: '**Decision: UNAPPROVE** (flagging new concerns)',
-  block:     '**Decision: CHANGES REQUESTED**',
+  approve: "**Decision: APPROVED**",
+  comment: "**Decision: COMMENT**",
+  unapprove: "**Decision: UNAPPROVE** (flagging new concerns)",
+  block: "**Decision: CHANGES REQUESTED**",
 };
 
 export function formatReviewBody(result: CoordinatorReview): string {
-  const findingsRows = result.findings.map((f, i) =>
-    `| ${i + 1} | ${f.severity} | \`${f.file}:${f.line_start}\` | ${f.title} |`
+  const findingsRows = result.findings.map(
+    (f, i) => `| ${i + 1} | ${f.severity} | \`${f.file}:${f.line_start}\` | ${f.title} |`,
   );
   const findingsTable = findingsRows.length
-    ? `\n\n### Findings\n| # | Severity | File | Title |\n|---|----------|------|-------|\n${findingsRows.join('\n')}`
-    : '';
+    ? `\n\n### Findings\n| # | Severity | File | Title |\n|---|----------|------|-------|\n${findingsRows.join("\n")}`
+    : "";
 
   return `${DECISION_LABEL[result.decision]}\n\n${result.summary}${findingsTable}`;
 }
@@ -128,13 +132,13 @@ export function formatReviewBody(result: CoordinatorReview): string {
 async function main(): Promise<void> {
   const target = resolveReviewTarget();
   if (!target) {
-    console.log('No labdadoor trigger matched — exiting cleanly.');
+    console.log("No labdadoor trigger matched — exiting cleanly.");
     return;
   }
 
   const token = getToken();
   const repo = getRepository();
-  const [owner, repoName] = repo.split('/');
+  const [owner, repoName] = repo.split("/");
 
   const octokit = new Octokit({ auth: token });
 
@@ -149,15 +153,15 @@ async function main(): Promise<void> {
   const vcsConfig: VcsConfig = {
     token,
     repo,
-    prNumber:    pr.number,
-    title:       pr.title,
-    description: pr.body ?? '',
-    author:      pr.user?.login ?? 'unknown',
-    baseBranch:  pr.base.ref,
-    headBranch:  pr.head.ref,
+    prNumber: pr.number,
+    title: pr.title,
+    description: pr.body ?? "",
+    author: pr.user?.login ?? "unknown",
+    baseBranch: pr.base.ref,
+    headBranch: pr.head.ref,
     diffStats: {
-      additions:    pr.additions,
-      deletions:    pr.deletions,
+      additions: pr.additions,
+      deletions: pr.deletions,
       filesChanged: pr.changed_files,
     },
   };
@@ -172,7 +176,7 @@ async function main(): Promise<void> {
     result = await runCodeReview(config);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error('runCodeReview failed:', msg);
+    console.error("runCodeReview failed:", msg);
     await octokit.issues.createComment({
       owner,
       repo: repoName,
@@ -182,7 +186,9 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`Review complete — decision: ${result.decision}, findings: ${result.findings.length}`);
+  console.log(
+    `Review complete — decision: ${result.decision}, findings: ${result.findings.length}`,
+  );
 
   await octokit.pulls.createReview({
     owner,
@@ -192,7 +198,7 @@ async function main(): Promise<void> {
     body: formatReviewBody(result),
   });
 
-  console.log('Review posted to GitHub.');
+  console.log("Review posted to GitHub.");
 }
 
 if ((import.meta as unknown as Record<string, unknown>).main) {

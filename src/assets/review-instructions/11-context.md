@@ -1,6 +1,7 @@
 # Context Review
 
 ## Overview
+
 Understand the CL in a broad context - both within the file and within the larger system. This helps catch design issues and architectural problems that might not be apparent from the diff alone.
 
 ## Key Points to Check

@@ -1,4 +1,4 @@
-import type { Severity, Category, Confidence, Decision } from './approval';
+import type { Severity, Category, Confidence, Decision } from "./approval";
 
 /**
  * Findings produced by specialist agents during code review.
@@ -21,8 +21,8 @@ export interface SpecialistFinding {
 export interface CoordinatorReview {
   decision: Decision;
   summary: string;
-  findings: Omit<SpecialistFinding, 'agent' | 'confidence'>[];
+  findings: Omit<SpecialistFinding, "agent" | "confidence">[];
 }
 
 // Re-export for convenience
-export type { Decision } from './approval';
+export type { Decision } from "./approval";

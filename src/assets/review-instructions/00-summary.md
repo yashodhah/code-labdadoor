@@ -7,6 +7,7 @@ Based on Google's Engineering Practices guide for code reviewers.
 In doing a code review, ensure that:
 
 ### Design
+
 - [ ] The code is well-designed
 - [ ] Interactions between components make sense
 - [ ] Changes belong in the codebase (not in a library)
@@ -14,6 +15,7 @@ In doing a code review, ensure that:
 - [ ] Timing of addition is appropriate
 
 ### Functionality
+
 - [ ] The code does what was intended
 - [ ] The intended behavior is good for users
 - [ ] Edge cases are handled
@@ -21,6 +23,7 @@ In doing a code review, ensure that:
 - [ ] Parallel programming is safe (no race conditions/deadlocks)
 
 ### Complexity
+
 - [ ] Code is not more complex than necessary
 - [ ] Individual lines are understandable
 - [ ] Functions have appropriate scope
@@ -28,6 +31,7 @@ In doing a code review, ensure that:
 - [ ] No over-engineering for speculative future needs
 
 ### Tests
+
 - [ ] Appropriate tests are included (unit/integration/e2e)
 - [ ] Tests are correct and useful
 - [ ] Tests will actually fail when code is broken
@@ -35,12 +39,14 @@ In doing a code review, ensure that:
 - [ ] Tests are well-designed and maintained
 
 ### Naming
+
 - [ ] Good names for variables, functions, and classes
 - [ ] Names are descriptive but not excessively long
 - [ ] Naming conventions are consistent
 - [ ] Names clearly communicate purpose
 
 ### Comments
+
 - [ ] Comments explain **why**, not **what**
 - [ ] All comments are necessary
 - [ ] Comments are clear and in good English
@@ -48,18 +54,21 @@ In doing a code review, ensure that:
 - [ ] No outdated comments
 
 ### Style
+
 - [ ] Code follows appropriate style guide
 - [ ] Formatting is consistent
 - [ ] Style changes are separated from functional changes
 - [ ] Minor style notes are marked as "Nit:"
 
 ### Consistency
+
 - [ ] Code follows established patterns
 - [ ] Inconsistencies are justified or noted for cleanup
 - [ ] Style guide requirements are met
 - [ ] Consistent with rest of codebase
 
 ### Documentation
+
 - [ ] User-facing changes are documented
 - [ ] API changes are explained
 - [ ] Deprecations are noted
@@ -67,6 +76,7 @@ In doing a code review, ensure that:
 - [ ] README and guides are updated
 
 ### Every Line
+
 - [ ] You understand every line of code
 - [ ] Code is reviewed thoroughly
 - [ ] Risky areas have careful review
@@ -74,6 +84,7 @@ In doing a code review, ensure that:
 - [ ] You've asked for clarification when needed
 
 ### Context
+
 - [ ] You reviewed the whole file, not just diff
 - [ ] You understand system-level implications
 - [ ] Code health is maintained or improved
@@ -81,6 +92,7 @@ In doing a code review, ensure that:
 - [ ] Related issues are identified
 
 ### Good Things
+
 - [ ] You recognized and appreciated good work
 - [ ] You provided constructive feedback
 - [ ] Your tone was encouraging

@@ -1,9 +1,9 @@
-import { CopilotClient, approveAll } from '@github/copilot-sdk';
-import { AGENT_REGISTRY } from './agent-registry';
-import { DiffContext, ReviewConfig, toDiffContext } from './review-config';
-import { GitHubVcsProvider } from './github';
-import { RiskTier } from '../types/approval';
-import type { ChangedFileMetadata } from '../types/context';
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
+import { AGENT_REGISTRY } from "./agent-registry";
+import { DiffContext, ReviewConfig, toDiffContext } from "./review-config";
+import { GitHubVcsProvider } from "./github";
+import { RiskTier } from "../types/approval";
+import type { ChangedFileMetadata } from "../types/context";
 
 // ─── Setup: Build VCS provider, fetch diff, and derive context ────────────────
 
@@ -20,21 +20,21 @@ export async function setupPreReview(_config: ReviewConfig): Promise<{
   const ctx = toDiffContext(enrichedVcs);
 
   console.log(
-    'Received config:',
+    "Received config:",
     JSON.stringify(
       {
         ..._config,
         vcs: {
           ..._config.vcs,
-          token: _config.vcs.token ? '[REDACTED]' : '',
+          token: _config.vcs.token ? "[REDACTED]" : "",
         },
       },
       null,
-      2
-    )
+      2,
+    ),
   );
-  console.log('Changed files indexed:', changedFiles.length);
-  console.log('Derived context:', JSON.stringify(ctx, null, 2));
+  console.log("Changed files indexed:", changedFiles.length);
+  console.log("Derived context:", JSON.stringify(ctx, null, 2));
 
   return { vcs, ctx, changedFiles };
 }
@@ -50,23 +50,23 @@ async function callLlmClassifier(
   ctx: DiffContext,
   changedFiles: ChangedFileMetadata[],
   agentRules: string | null,
-  config: ReviewConfig
+  config: ReviewConfig,
 ): Promise<LlmClassification> {
   const modelId = config.models.lightweight.id;
 
   const systemPrompt = [
-    'You are a code review classifier. Given a list of changed files, a PR title, and optional repo agent rules,',
-    'determine which specialist agents should review the PR.',
+    "You are a code review classifier. Given a list of changed files, a PR title, and optional repo agent rules,",
+    "determine which specialist agents should review the PR.",
     'Respond ONLY with valid JSON (no markdown fences): { "performance": boolean, "agents_freshness": boolean }',
-    '- performance: true if changes are likely to affect runtime performance',
-    '- agents_freshness: true if source code changes may require AGENTS.md/instruction updates',
-  ].join('\n');
+    "- performance: true if changes are likely to affect runtime performance",
+    "- agents_freshness: true if source code changes may require AGENTS.md/instruction updates",
+  ].join("\n");
 
   const userPrompt = [
     `PR title: ${ctx.title}`,
-    `Changed files:\n${changedFiles.map((f) => `- ${f.filename}`).join('\n')}`,
-    agentRules ? `\nRepo agent rules (AGENTS.md):\n${agentRules}` : '',
-  ].join('\n');
+    `Changed files:\n${changedFiles.map((f) => `- ${f.filename}`).join("\n")}`,
+    agentRules ? `\nRepo agent rules (AGENTS.md):\n${agentRules}` : "",
+  ].join("\n");
 
   const client = new CopilotClient();
   await client.start();
@@ -80,7 +80,10 @@ async function callLlmClassifier(
 
     try {
       const response = await session.sendAndWait({ prompt: userPrompt }, 30_000);
-      const raw = (response?.data.content ?? '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '');
+      const raw = (response?.data.content ?? "")
+        .trim()
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```\s*$/i, "");
       const parsed = JSON.parse(raw) as Record<string, unknown>;
       return {
         performance: Boolean(parsed.performance),
@@ -90,7 +93,10 @@ async function callLlmClassifier(
       await session.disconnect().catch(() => undefined);
     }
   } catch (err) {
-    console.warn('[classify] LLM fallback failed, defaulting to false:', err instanceof Error ? err.message : err);
+    console.warn(
+      "[classify] LLM fallback failed, defaulting to false:",
+      err instanceof Error ? err.message : err,
+    );
     return { performance: false, agents_freshness: false };
   } finally {
     await client.stop().catch(() => undefined);
@@ -103,9 +109,9 @@ export async function classify(
   ctx: DiffContext,
   changedFiles: ChangedFileMetadata[],
   agentRules: string | null,
-  config: ReviewConfig
+  config: ReviewConfig,
 ): Promise<{ tier: RiskTier; agents: string[] }> {
-  console.log('Classifying PR with diff and context...');
+  console.log("Classifying PR with diff and context...");
 
   const matchedAgents = new Set<string>();
   const needsLlm: string[] = [];
@@ -132,29 +138,32 @@ export async function classify(
 
   if (needsLlm.length > 0) {
     const llmResult = await callLlmClassifier(ctx, changedFiles, agentRules, config);
-    if (llmResult.performance && needsLlm.includes('performance')) {
-      matchedAgents.add('performance');
+    if (llmResult.performance && needsLlm.includes("performance")) {
+      matchedAgents.add("performance");
     }
-    if (llmResult.agents_freshness && needsLlm.includes('agents-freshness')) {
-      matchedAgents.add('agents-freshness');
+    if (llmResult.agents_freshness && needsLlm.includes("agents-freshness")) {
+      matchedAgents.add("agents-freshness");
     }
   }
 
   const agents = Array.from(matchedAgents);
 
-  const hasSecurity = agents.includes('security');
-  const hasPerformance = agents.includes('performance');
-  const totalChanged = changedFiles.reduce((sum, f) => sum + (f.additions ?? 0) + (f.deletions ?? 0), 0);
+  const hasSecurity = agents.includes("security");
+  const hasPerformance = agents.includes("performance");
+  const totalChanged = changedFiles.reduce(
+    (sum, f) => sum + (f.additions ?? 0) + (f.deletions ?? 0),
+    0,
+  );
 
   let tier: RiskTier;
   if (hasSecurity || totalChanged > 300) {
-    tier = 'full';
+    tier = "full";
   } else if (hasPerformance || totalChanged > 50) {
-    tier = 'lite';
+    tier = "lite";
   } else {
-    tier = 'trivial';
+    tier = "trivial";
   }
 
-  console.log(`Classification: tier=${tier}, agents=[${agents.join(', ')}]`);
+  console.log(`Classification: tier=${tier}, agents=[${agents.join(", ")}]`);
   return { tier, agents };
 }

@@ -9,12 +9,12 @@ It uses a multi-agent pipeline where a classifier decides which specialist agent
 
 ## Specialist agents
 
-| Agent | Trigger |
-|---|---|
-| `quality` | Always — reviews design, functionality, and complexity |
-| `security` | Path match: `auth/`, `crypto/`, `middleware`, `validation`, `token`, `secret`, `password` |
-| `performance` | LLM-classified — triggered when changes likely affect runtime performance |
-| `docs` | Path match: `.md`, `.mdx`, `README`, `CHANGELOG`, `docs/` |
+| Agent              | Trigger                                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------------------- |
+| `quality`          | Always — reviews design, functionality, and complexity                                                   |
+| `security`         | Path match: `auth/`, `crypto/`, `middleware`, `validation`, `token`, `secret`, `password`                |
+| `performance`      | LLM-classified — triggered when changes likely affect runtime performance                                |
+| `docs`             | Path match: `.md`, `.mdx`, `README`, `CHANGELOG`, `docs/`                                                |
 | `agents-freshness` | Path match on `src/` or `AGENTS.md`, or LLM-classified — checks whether agent instructions need updating |
 
 ## How it works
@@ -23,8 +23,7 @@ It uses a multi-agent pipeline where a classifier decides which specialist agent
 2. Classifies the PR (risk tier: trivial / lite / full) and selects which agents to run
 3. Each agent reviews its scoped diff and returns XML findings
 4. Findings are deduplicated by file + line overlap (highest severity wins)
-5. Returns a structured review 
-
+5. Returns a structured review
 
 ## Integrations
 

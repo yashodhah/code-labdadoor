@@ -938,8 +938,7 @@ const code = new URL(location.href).searchParams.get("code");
 if (code) {
   // remove ?code=... from URL
   const path =
-    location.pathname +
-    location.search.replace(/\b(code|state)=\w+/g, "").replace(/[?&]+$/, "");
+    location.pathname + location.search.replace(/\b(code|state)=\w+/g, "").replace(/[?&]+$/, "");
   history.replaceState({}, "", path);
 
   // exchange the code for a token with your backend.

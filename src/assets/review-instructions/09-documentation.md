@@ -1,6 +1,7 @@
 # Documentation Review
 
 ## Overview
+
 If a CL changes how users build, test, interact with, or release code, it should also update associated documentation. Missing documentation should be requested.
 
 ## Key Points to Check

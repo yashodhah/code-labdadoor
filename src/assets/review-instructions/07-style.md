@@ -1,6 +1,7 @@
 # Style Review
 
 ## Overview
+
 Code should follow the appropriate style guides for the project and language. Style reviews should not block submissions for personal preferences.
 
 ## Key Points to Check

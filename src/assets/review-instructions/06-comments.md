@@ -1,6 +1,7 @@
 # Comments Review
 
 ## Overview
+
 Comments should explain **why** code exists, not **what** it does. If code isn't clear enough to explain itself, the code should be simplified instead.
 
 ## Key Points to Check

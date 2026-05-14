@@ -1,6 +1,7 @@
 # Good Things Review
 
 ## Overview
+
 Actively recognize and appreciate good practices in code reviews. Positive feedback is valuable for mentoring and can be more impactful than pointing out mistakes.
 
 ## Key Points to Check
@@ -13,42 +14,49 @@ Actively recognize and appreciate good practices in code reviews. Positive feedb
 ## What to Appreciate
 
 ### 1. Well-Written Code
+
 - Clear, readable implementation
 - Elegant solutions to complex problems
 - Good naming and organization
 - Self-documenting code
 
 ### 2. Thoughtful Design
+
 - Solid architecture decisions
 - Good separation of concerns
 - Appropriate abstraction levels
 - Scalable solutions
 
 ### 3. Comprehensive Testing
+
 - Good test coverage
 - Well-designed test cases
 - Edge cases covered
 - Clear test organization
 
 ### 4. Excellent Documentation
+
 - Clear README updates
 - Good code comments explaining why
 - API documentation
 - Migration guides for breaking changes
 
 ### 5. Responsive to Feedback
+
 - Quick fixes to review comments
 - Good explanations for disagreements
 - Thoughtful responses to suggestions
 - Willingness to iterate
 
 ### 6. Security and Performance
+
 - Secure coding practices
 - Efficient algorithms
 - Resource management
 - Attention to performance implications
 
 ### 7. Problem Solving
+
 - Creative solutions to constraints
 - Clever but readable implementations
 - Good error handling
@@ -59,10 +67,12 @@ Actively recognize and appreciate good practices in code reviews. Positive feedb
 ### Specific Praise
 
 Instead of:
+
 - "Good job"
 - "Nice work"
 
 Try:
+
 - "I really like how you handled the error cases here - this is much clearer"
 - "The way you factored out the common logic is elegant"
 - "Great catch on the race condition - that was easy to miss"

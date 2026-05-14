@@ -1,25 +1,25 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "bun",
-            "request": "launch",
-            "name": "Bun: Debug index.ts",
-            "program": "${workspaceFolder}/src/index.ts",
-            "cwd": "${workspaceFolder}",
-            "stopOnEntry": false,
-            "watchMode": false,
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "type": "bun",
-            "request": "launch",
-            "name": "Bun: Debug review script",
-            "program": "${workspaceFolder}/src/index.ts",
-            "cwd": "${workspaceFolder}",
-            "stopOnEntry": false,
-            "watchMode": false,
-            "internalConsoleOptions": "neverOpen"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "bun",
+      "request": "launch",
+      "name": "Bun: Debug index.ts",
+      "program": "${workspaceFolder}/src/index.ts",
+      "cwd": "${workspaceFolder}",
+      "stopOnEntry": false,
+      "watchMode": false,
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "bun",
+      "request": "launch",
+      "name": "Bun: Debug review script",
+      "program": "${workspaceFolder}/src/index.ts",
+      "cwd": "${workspaceFolder}",
+      "stopOnEntry": false,
+      "watchMode": false,
+      "internalConsoleOptions": "neverOpen"
+    }
+  ]
 }

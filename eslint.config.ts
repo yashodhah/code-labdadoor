@@ -13,7 +13,11 @@ export default tseslint.config(
     },
     rules: {
       "no-console": "warn",
-      "eqeqeq": ["error", "always"],
+      eqeqeq: ["error", "always"],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
     },
   },
   {
@@ -29,6 +33,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ["dist/**", "node_modules/**"],
+    ignores: ["dist/**", "node_modules/**", "action/**"],
   },
 );
