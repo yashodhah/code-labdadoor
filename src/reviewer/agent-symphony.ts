@@ -208,7 +208,7 @@ export async function orchestrateAgentsImpl(
   const systemPrompt = buildOrchestratorSystemPrompt(scopes, agentInstructions);
   const userPrompt = await buildOrchestratorUserPrompt(scopes);
 
-  const client = new CopilotClient();
+  const client = new CopilotClient({ gitHubToken: process.env.GITHUB_TOKEN });
   await client.start();
 
   try {

@@ -4,6 +4,7 @@ import { DiffContext, ReviewConfig, toDiffContext } from "./review-config";
 import { GitHubVcsProvider } from "./github";
 import { RiskTier } from "../types/approval";
 import type { ChangedFileMetadata } from "../types/context";
+import { detectAvailableModels } from "./model-detection";
 
 // ─── Setup: Build VCS provider, fetch diff, and derive context ────────────────
 
@@ -12,6 +13,8 @@ export async function setupPreReview(_config: ReviewConfig): Promise<{
   ctx: DiffContext;
   changedFiles: ChangedFileMetadata[];
 }> {
+  await detectAvailableModels();
+
   const vcs = new GitHubVcsProvider(_config.vcs);
 
   const enrichedVcs = await vcs.enrichConfig(_config.vcs);
@@ -68,7 +71,7 @@ async function callLlmClassifier(
     agentRules ? `\nRepo agent rules (AGENTS.md):\n${agentRules}` : "",
   ].join("\n");
 
-  const client = new CopilotClient();
+  const client = new CopilotClient({ gitHubToken: process.env.GH_TOKEN });
   await client.start();
 
   try {
