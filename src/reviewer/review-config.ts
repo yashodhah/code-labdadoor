@@ -6,5 +6,5 @@ export type {
   ModelDef,
   ModelsConfig,
   ReviewConfig,
-} from '../types/review-config';
-export { toDiffContext } from '../types/review-config';
+} from "../types/review-config";
+export { toDiffContext } from "../types/review-config";

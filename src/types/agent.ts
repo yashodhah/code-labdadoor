@@ -1,10 +1,10 @@
-import type { Category, ModelTier } from './approval';
+import type { Category, ModelTier } from "./approval";
 
 /**
  * Types for agent configuration and triggering rules.
  */
 
-export type { ModelTier } from './approval';
+export type { ModelTier } from "./approval";
 
 export interface TriggerRule {
   /** Run this agent on every PR (for source files). */

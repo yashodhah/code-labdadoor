@@ -133,14 +133,14 @@ await client.start();
 
 // One client hosts all sessions — createSession() can be called multiple times
 const session = await client.createSession({
-    model: "gpt-4o",
-    onPermissionRequest: approveAll,   // required on every createSession
-    provider: {
-        type: "openai",
-        baseUrl: "https://api.openai.com/v1",
-        apiKey: process.env.OPENAI_API_KEY,
-    },
-    systemMessage: { content: AGENT_SYSTEM_PROMPT },
+  model: "gpt-4o",
+  onPermissionRequest: approveAll, // required on every createSession
+  provider: {
+    type: "openai",
+    baseUrl: "https://api.openai.com/v1",
+    apiKey: process.env.OPENAI_API_KEY,
+  },
+  systemMessage: { content: AGENT_SYSTEM_PROMPT },
 });
 
 const result = await session.sendAndWait({ prompt: userMessage });
@@ -154,23 +154,26 @@ await client.stop();
 
 No native `format: { type: 'json_schema' }` — enforce via system prompt:
 
-```typescript
+````typescript
 const systemPrompt = `${SECURITY_PROMPT}
 
 Respond ONLY with a valid JSON array matching this schema — no markdown, no explanation:
 ${JSON.stringify(findingSchema, null, 2)}`;
 
 const raw = result?.data.content ?? "";
-const json = raw.replace(/^```json\s*/i, "").replace(/\s*```$/, "").trim();
+const json = raw
+  .replace(/^```json\s*/i, "")
+  .replace(/\s*```$/, "")
+  .trim();
 const findings = JSON.parse(json) as Finding[];
-```
+````
 
 ### Parallel Sessions
 
 ```typescript
 const [secRaw, qualRaw] = await Promise.all([
-    runAgentSession(client, SECURITY_PROMPT, diff, findingSchema),
-    runAgentSession(client, QUALITY_PROMPT, diff, findingSchema),
+  runAgentSession(client, SECURITY_PROMPT, diff, findingSchema),
+  runAgentSession(client, QUALITY_PROMPT, diff, findingSchema),
 ]);
 ```
 
@@ -194,55 +197,61 @@ Or wrap at a higher level:
 
 ```typescript
 async function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
-    return Promise.race([p, new Promise<never>((_, r) => setTimeout(() => r(new Error("timeout")), ms))]);
+  return Promise.race([
+    p,
+    new Promise<never>((_, r) => setTimeout(() => r(new Error("timeout")), ms)),
+  ]);
 }
 ```
 
 ## Migration from @opencode-ai/sdk
 
-| @opencode-ai/sdk | @github/copilot-sdk |
-|---|---|
-| `createOpencode({ config: { model } })` | `new CopilotClient(); await client.start()` |
-| `client.session.create()` | `await client.createSession({ model, onPermissionRequest, provider })` |
-| `client.session.prompt({ id, prompt, format })` | `await session.sendAndWait({ prompt })` |
-| `pollUntilIdle(client, sessionId)` | built into `sendAndWait` |
-| `server.close()` | `await client.stop()` (or `client.forceStop()` for forced) |
-| `format: { type: 'json_schema', schema }` | enforce JSON in system prompt + `JSON.parse` |
+| @opencode-ai/sdk                                | @github/copilot-sdk                                                    |
+| ----------------------------------------------- | ---------------------------------------------------------------------- |
+| `createOpencode({ config: { model } })`         | `new CopilotClient(); await client.start()`                            |
+| `client.session.create()`                       | `await client.createSession({ model, onPermissionRequest, provider })` |
+| `client.session.prompt({ id, prompt, format })` | `await session.sendAndWait({ prompt })`                                |
+| `pollUntilIdle(client, sessionId)`              | built into `sendAndWait`                                               |
+| `server.close()`                                | `await client.stop()` (or `client.forceStop()` for forced)             |
+| `format: { type: 'json_schema', schema }`       | enforce JSON in system prompt + `JSON.parse`                           |
 
 ## Full Agent Session Helper
 
-```typescript
+````typescript
 async function runAgentSession(
-    client: CopilotClient,
-    systemPrompt: string,
-    userMessage: string,
-    schema: object
+  client: CopilotClient,
+  systemPrompt: string,
+  userMessage: string,
+  schema: object,
 ): Promise<string> {
-    const prompt = `${systemPrompt}
+  const prompt = `${systemPrompt}
 
 Respond ONLY with valid JSON matching this schema — no markdown fences:
 ${JSON.stringify(schema, null, 2)}`;
 
-    const session = await client.createSession({
-        model: "gpt-4o",
-        onPermissionRequest: approveAll,
-        provider: {
-            type: "openai",
-            baseUrl: "https://api.openai.com/v1",
-            apiKey: process.env.OPENAI_API_KEY,
-        },
-        systemMessage: { content: prompt },
-    });
+  const session = await client.createSession({
+    model: "gpt-4o",
+    onPermissionRequest: approveAll,
+    provider: {
+      type: "openai",
+      baseUrl: "https://api.openai.com/v1",
+      apiKey: process.env.OPENAI_API_KEY,
+    },
+    systemMessage: { content: prompt },
+  });
 
-    try {
-        const result = await session.sendAndWait({ prompt: userMessage }, 5 * 60 * 1000);
-        const raw = result?.data.content ?? "";
-        return raw.replace(/^```json\s*/i, "").replace(/\s*```$/, "").trim();
-    } finally {
-        await session.disconnect();
-    }
+  try {
+    const result = await session.sendAndWait({ prompt: userMessage }, 5 * 60 * 1000);
+    const raw = result?.data.content ?? "";
+    return raw
+      .replace(/^```json\s*/i, "")
+      .replace(/\s*```$/, "")
+      .trim();
+  } finally {
+    await session.disconnect();
+  }
 }
-```
+````
 
 ## Cleanup: stop() vs forceStop()
 
@@ -259,11 +268,11 @@ ${JSON.stringify(schema, null, 2)}`;
 
 ## Common Mistakes
 
-| Mistake | Fix |
-|---|---|
-| Missing `onPermissionRequest` | Always required — use `approveAll` |
-| Custom provider without `model` | `model` is required with `provider` |
-| Expecting JSON without schema in system prompt | No native structured output — must instruct via prompt |
-| Calling `server.close()` (opencode pattern) | Use `await client.stop()` |
-| Creating a new `CopilotClient` per session | Create once, call `createSession` multiple times |
-| `try { await client.stop() } catch` — wrapping stop() in try/catch | `stop()` returns errors in an array, it doesn't throw |
+| Mistake                                                            | Fix                                                    |
+| ------------------------------------------------------------------ | ------------------------------------------------------ |
+| Missing `onPermissionRequest`                                      | Always required — use `approveAll`                     |
+| Custom provider without `model`                                    | `model` is required with `provider`                    |
+| Expecting JSON without schema in system prompt                     | No native structured output — must instruct via prompt |
+| Calling `server.close()` (opencode pattern)                        | Use `await client.stop()`                              |
+| Creating a new `CopilotClient` per session                         | Create once, call `createSession` multiple times       |
+| `try { await client.stop() } catch` — wrapping stop() in try/catch | `stop()` returns errors in an array, it doesn't throw  |

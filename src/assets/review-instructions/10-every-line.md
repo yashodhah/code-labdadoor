@@ -1,6 +1,7 @@
 # Every Line Review
 
 ## Overview
+
 In the general case, review every line of code you've been assigned to review. Understand what all the code is doing, being more careful with some code than others based on risk and complexity.
 
 ## Key Points to Check

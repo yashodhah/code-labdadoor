@@ -1,6 +1,7 @@
 # Functionality Review
 
 ## Overview
+
 Does this CL do what the developer intended? Is what the developer intended good for the users of this code?
 
 ## Key Points to Check

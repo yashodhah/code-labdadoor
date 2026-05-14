@@ -1,20 +1,20 @@
-import { Octokit } from '@octokit/rest';
-import type { VcsConfig } from './review-config';
-import type { ChangedFileMetadata } from '../types/context';
+import { Octokit } from "@octokit/rest";
+import type { VcsConfig } from "./review-config";
+import type { ChangedFileMetadata } from "../types/context";
 
 async function isGeneratedFile(
   octokit: Octokit,
   owner: string,
   repo: string,
   filename: string,
-  ref: string
+  ref: string,
 ): Promise<boolean> {
   try {
     const { data } = await octokit.repos.getContent({ owner, repo, path: filename, ref });
-    if ('content' in data && typeof data.content === 'string') {
-      const raw = Buffer.from(data.content, 'base64').toString('utf-8');
-      const firstFiveLines = raw.split('\n').slice(0, 5).join('\n');
-      return firstFiveLines.includes('@generated');
+    if ("content" in data && typeof data.content === "string") {
+      const raw = Buffer.from(data.content, "base64").toString("utf-8");
+      const firstFiveLines = raw.split("\n").slice(0, 5).join("\n");
+      return firstFiveLines.includes("@generated");
     }
   } catch {
     // file may not exist at this ref (deleted), treat as not generated
@@ -23,27 +23,26 @@ async function isGeneratedFile(
 }
 
 function parseRepo(repoStr: string): { owner: string; repo: string } {
-  const [owner, repo] = repoStr.split('/');
+  const [owner, repo] = repoStr.split("/");
   if (!owner || !repo) throw new Error(`Invalid repo format: "${repoStr}"`);
   return { owner, repo };
 }
 
-
 // ______________________________________________________________________________________________
 
 export class GitHubVcsProvider {
-  private cachedFiles: Awaited<ReturnType<Octokit['pulls']['listFiles']>>['data'] | null = null;
+  private cachedFiles: Awaited<ReturnType<Octokit["pulls"]["listFiles"]>>["data"] | null = null;
 
   constructor(private config?: VcsConfig) {}
 
   private octokit(): Octokit {
     const token = this.config?.token ?? process.env.GITHUB_TOKEN;
-    if (!token) throw new Error('GitHub token not provided');
+    if (!token) throw new Error("GitHub token not provided");
     return new Octokit({ auth: token });
   }
 
   private prCoords(): { owner: string; repo: string; prNumber: number } {
-    const repoStr = this.config?.repo ?? process.env.GITHUB_REPO ?? '';
+    const repoStr = this.config?.repo ?? process.env.GITHUB_REPO ?? "";
     const prNumber = this.config?.prNumber ?? Number(process.env.PR_NUMBER);
     return { ...parseRepo(repoStr), prNumber };
   }
@@ -73,8 +72,8 @@ export class GitHubVcsProvider {
       return {
         ...config,
         title: config.title ?? pr.title,
-        description: config.description ?? pr.body ?? '',
-        author: config.author ?? pr.user?.login ?? '',
+        description: config.description ?? pr.body ?? "",
+        author: config.author ?? pr.user?.login ?? "",
         files: config.files ?? files.map((f) => f.filename),
         diffStats: config.diffStats ?? {
           additions: pr.additions,
@@ -83,12 +82,14 @@ export class GitHubVcsProvider {
         },
       };
     } catch (error) {
-      console.error('[GitHub] Failed to enrich config:', error);
+      console.error("[GitHub] Failed to enrich config:", error);
       throw error;
     }
   }
 
-  private async listPullFiles(): Promise<Awaited<ReturnType<Octokit['pulls']['listFiles']>>['data']> {
+  private async listPullFiles(): Promise<
+    Awaited<ReturnType<Octokit["pulls"]["listFiles"]>>["data"]
+  > {
     if (this.cachedFiles) {
       return this.cachedFiles;
     }
@@ -161,11 +162,11 @@ export class GitHubVcsProvider {
 
     const header = [
       `PR #${prNumber}: ${pr.title}`,
-      pr.body ? `\nDescription:\n${pr.body}` : '',
+      pr.body ? `\nDescription:\n${pr.body}` : "",
       `\nBase: ${pr.base.sha}  →  Head: ${pr.head.sha}`,
     ]
       .filter(Boolean)
-      .join('');
+      .join("");
 
     const chunks: string[] = [header];
 
@@ -180,7 +181,7 @@ export class GitHubVcsProvider {
       chunks.push(`\n--- ${file.filename} (${file.status}) ---\n${file.patch}`);
     }
 
-    return chunks.join('\n');
+    return chunks.join("\n");
   }
 
   async postReview(decision: string, body: string): Promise<void> {
@@ -191,7 +192,7 @@ export class GitHubVcsProvider {
       owner,
       repo,
       pull_number: prNumber,
-      event: decision as 'APPROVE' | 'COMMENT' | 'REQUEST_CHANGES',
+      event: decision as "APPROVE" | "COMMENT" | "REQUEST_CHANGES",
       body,
     });
   }
@@ -221,8 +222,8 @@ export class GitHubVcsProvider {
         path: filePath,
         ref: pr.base.sha,
       });
-      if ('content' in data && typeof data.content === 'string') {
-        return Buffer.from(data.content, 'base64').toString('utf-8');
+      if ("content" in data && typeof data.content === "string") {
+        return Buffer.from(data.content, "base64").toString("utf-8");
       }
       return null;
     } catch {

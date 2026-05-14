@@ -1,6 +1,7 @@
 # Complexity Review
 
 ## Overview
+
 Is the CL more complex than it should be? Complexity can exist at multiple levels and should be examined carefully.
 
 ## Key Points to Check

@@ -1,8 +1,8 @@
 coordinator
-    ↓ classifies
-    → security agent   (if any auth/crypto/validation files changed)
-    → quality agent    (always, for source files)
-    → docs agent       (only if .md files changed)
+↓ classifies
+→ security agent (if any auth/crypto/validation files changed)
+→ quality agent (always, for source files)
+→ docs agent (only if .md files changed)
 
 Based on everything we've pulled together — the Cloudflare article, the debug logs, and the architecture discussion — the coordinator's full job is:
 

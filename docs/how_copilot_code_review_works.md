@@ -35,15 +35,15 @@ This PR made **9 separate LLM calls**, each building on accumulated context from
 
 ## Tools Available (7 total)
 
-| Tool | What it does | Status |
-| --- | --- | --- |
-| `read_code` | Read a file by line range | ✅ Active |
-| `search_dir` | Search for a term across files | ✅ Active |
-| `list_dir` | List directory contents | ✅ Active |
-| `store_comment` | File a review comment | ✅ Active |
-| `store_memory` | Write a fact to persistent memory | ✅ Active |
-| `plan` | Write a multi-step plan before acting | ❌ Disabled (`EnablePlanTool=false`) |
-| `semantic_issue_search` | Vector search over the codebase | ❌ Disabled (`EnableSemanticIssueSearchTool=false`) |
+| Tool                    | What it does                          | Status                                              |
+| ----------------------- | ------------------------------------- | --------------------------------------------------- |
+| `read_code`             | Read a file by line range             | ✅ Active                                           |
+| `search_dir`            | Search for a term across files        | ✅ Active                                           |
+| `list_dir`              | List directory contents               | ✅ Active                                           |
+| `store_comment`         | File a review comment                 | ✅ Active                                           |
+| `store_memory`          | Write a fact to persistent memory     | ✅ Active                                           |
+| `plan`                  | Write a multi-step plan before acting | ❌ Disabled (`EnablePlanTool=false`)                |
+| `semantic_issue_search` | Vector search over the codebase       | ❌ Disabled (`EnableSemanticIssueSearchTool=false`) |
 
 Disabled tools = cost/speed tradeoffs. Semantic search requires embedding the whole codebase — overkill for a single-file PR.
 
@@ -53,23 +53,23 @@ Disabled tools = cost/speed tradeoffs. Semantic search requires embedding the wh
 
 **Persistent per-repo** — agent called `store_memory` with a structured fact:
 
-- *fact*: what changed (resumeSessionId replaces shareSession toggle)
-- *reason*: why it matters for future reviews
-- *citations*: exact file + line numbers
+- _fact_: what changed (resumeSessionId replaces shareSession toggle)
+- _reason_: why it matters for future reviews
+- _citations_: exact file + line numbers
 
 Stored at: `api.githubcopilot.com/agents/swe/internal/memory/v0/{owner}/{repo}`
 
-At the *start* of this run it loaded **2 existing memories** about the repo. So this thing is learning the codebase incrementally across every PR.
+At the _start_ of this run it loaded **2 existing memories** about the repo. So this thing is learning the codebase incrementally across every PR.
 
 **A/B experiment flag** — `ccr_c_551_memory:31485936` in the payload. Memory is still being experimentally rolled out — this run happened to be in the treatment group.
 
 ## The 3 Comments Filed
 
-| Severity | File | Lines | Issue |
-| --- | --- | --- | --- |
+| Severity    | File                   | Lines   | Issue                                                                     |
+| ----------- | ---------------------- | ------- | ------------------------------------------------------------------------- |
 | 🔴 Critical | `CopilotAgent.node.ts` | 100–105 | `let session;` = implicit `any`, breaks `noImplicitAny: true` in tsconfig |
-| 🟡 Moderate | `CopilotAgent.node.ts` | 348–352 | `client.start()` failure swallows URL + original error — hard to debug |
-| 🟡 Moderate | `CopilotAgent.node.ts` | 345–358 | `client.stop()` never called if `client.start()` throws — resource leak |
+| 🟡 Moderate | `CopilotAgent.node.ts` | 348–352 | `client.start()` failure swallows URL + original error — hard to debug    |
+| 🟡 Moderate | `CopilotAgent.node.ts` | 345–358 | `client.stop()` never called if `client.start()` throws — resource leak   |
 
 ## Detector Config (the flags blob)
 

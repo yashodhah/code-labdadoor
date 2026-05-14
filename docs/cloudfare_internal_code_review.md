@@ -64,7 +64,6 @@ The "plugin system" is just their way of **building that config from multiple so
 **Why this matters for teams:** Each team can write and ship their own plugin independently. The payments team ships a PCI compliance plugin. The infra team ships a Terraform specialist plugin. Nobody needs to go through a central team. Same reason VS Code has an extension marketplace.
 
 > For a prototype, skip the plugin system entirely. Just write `opencode.json` directly. Add the abstraction only when multiple teams need to extend it.
-> 
 
 ---
 
@@ -85,11 +84,11 @@ Example — the security reviewer is explicitly told NOT to flag:
 
 ## Model tiers (cost optimisation)
 
-| Tier | Models | Used for |
-| --- | --- | --- |
-| Top | Claude Opus / GPT-5 | Coordinator only |
-| Standard | Claude Sonnet / GPT Codex | Security, performance, code quality |
-| Lightweight | Kimi K2.5 | Docs, release notes, [AGENTS.md](http://AGENTS.md) |
+| Tier        | Models                    | Used for                                           |
+| ----------- | ------------------------- | -------------------------------------------------- |
+| Top         | Claude Opus / GPT-5       | Coordinator only                                   |
+| Standard    | Claude Sonnet / GPT Codex | Security, performance, code quality                |
+| Lightweight | Kimi K2.5                 | Docs, release notes, [AGENTS.md](http://AGENTS.md) |
 
 Model assignments can be overridden dynamically from a Cloudflare Worker — no code deploys needed.
 
@@ -97,11 +96,11 @@ Model assignments can be overridden dynamically from a Cloudflare Worker — no 
 
 ## Risk tiers (token spend optimisation)
 
-| Tier | Condition | Agents |
-| --- | --- | --- |
-| Trivial | ≤10 lines, ≤20 files | 2 (coordinator + one general reviewer) |
-| Lite | ≤100 lines, ≤20 files | 4 |
-| Full | >100 lines or >50 files | 7+ |
+| Tier    | Condition               | Agents                                 |
+| ------- | ----------------------- | -------------------------------------- |
+| Trivial | ≤10 lines, ≤20 files    | 2 (coordinator + one general reviewer) |
+| Lite    | ≤100 lines, ≤20 files   | 4                                      |
+| Full    | >100 lines or >50 files | 7+                                     |
 
 Anything touching `auth/` or `crypto/` always triggers full review regardless of size.
 
@@ -111,12 +110,12 @@ Anything touching `auth/` or `crypto/` always triggers full review regardless of
 
 Biased toward approval — single warning in an otherwise clean MR still gets approved with comments.
 
-| Finding | Action |
-| --- | --- |
-| All clear / trivial suggestions | Approve |
-| Warnings, no production risk | Approve with comments |
+| Finding                                  | Action                          |
+| ---------------------------------------- | ------------------------------- |
+| All clear / trivial suggestions          | Approve                         |
+| Warnings, no production risk             | Approve with comments           |
 | Multiple warnings forming a risk pattern | Unapprove (revoke bot approval) |
-| Any critical item or security risk | Block merge (request changes) |
+| Any critical item or security risk       | Block merge (request changes)   |
 
 **Escape hatch:** Comment `break glass` to force approval regardless. For hotfixes.
 

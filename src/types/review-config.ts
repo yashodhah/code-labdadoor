@@ -1,55 +1,55 @@
 // ─── Diff Context ────────────────────────────────────────────────────────────
 
 export interface DiffContext {
-  prNumber:    number;
-  title:       string;
-  author:      string;
+  prNumber: number;
+  title: string;
+  author: string;
   description: string;
-  files:       string[];
-  additions:   number;
-  deletions:   number;
+  files: string[];
+  additions: number;
+  deletions: number;
 }
 
 // ─── VCS ─────────────────────────────────────────────────────────────────────
 
 export interface DiffStats {
-  additions:    number;
-  deletions:    number;
+  additions: number;
+  deletions: number;
   filesChanged: number;
 }
 
 export interface VcsConfig {
-  token:          string;
-  repo:           string;           // owner/repo format
-  prNumber:       number;
-  baseBranch?:    string;
-  headBranch?:    string;
-  title?:         string;
-  description?:   string;
-  author?:        string;
-  files?:         string[];
-  diffStats?:     DiffStats;
+  token: string;
+  repo: string; // owner/repo format
+  prNumber: number;
+  baseBranch?: string;
+  headBranch?: string;
+  title?: string;
+  description?: string;
+  author?: string;
+  files?: string[];
+  diffStats?: DiffStats;
 }
 
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 export interface ModelDef {
-  id:            string;
-  provider:      string;
+  id: string;
+  provider: string;
   fallbackChain: string[];
-  usedFor:       string;
+  usedFor: string;
 }
 
 export interface ModelsConfig {
-  top:        ModelDef;
-  standard:   ModelDef;
+  top: ModelDef;
+  standard: ModelDef;
   lightweight: ModelDef;
 }
 
 // ─── Root Config ─────────────────────────────────────────────────────────────
 
 export interface ReviewConfig {
-  vcs:    VcsConfig;
+  vcs: VcsConfig;
   models: ModelsConfig;
 }
 
@@ -57,12 +57,12 @@ export interface ReviewConfig {
 
 export function toDiffContext(vcs: VcsConfig): DiffContext {
   return {
-    prNumber:    vcs.prNumber,
-    title:       vcs.title       ?? '',
-    author:      vcs.author      ?? '',
-    description: vcs.description ?? '',
-    files:       vcs.files       ?? [],
-    additions:   vcs.diffStats?.additions   ?? 0,
-    deletions:   vcs.diffStats?.deletions   ?? 0,
+    prNumber: vcs.prNumber,
+    title: vcs.title ?? "",
+    author: vcs.author ?? "",
+    description: vcs.description ?? "",
+    files: vcs.files ?? [],
+    additions: vcs.diffStats?.additions ?? 0,
+    deletions: vcs.diffStats?.deletions ?? 0,
   };
 }
