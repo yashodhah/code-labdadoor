@@ -6,7 +6,8 @@
   "scripts": {
     "review": "bun src/index.ts",
     "lint": "eslint --flag unstable_native_nodejs_ts_config src/ github/",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@github/copilot-sdk": "latest",
@@ -24,5 +25,18 @@
     "smee-client": "^5.0.0",
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.59.3"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix --flag unstable_native_nodejs_ts_config",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  },
+  "simple-git-hooks": {
+    "pre-commit": "bunx lint-staged",
+    "pre-push": "bun run typecheck"
   }
 }
