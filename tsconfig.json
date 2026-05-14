@@ -13,6 +13,6 @@
     "resolveJsonModule": true,
     "sourceMap": true
   },
-  "include": ["src/**/*", "github/index.ts"],
+  "include": ["src/**/*", "github/**/*"],
   "exclude": ["node_modules", "dist"]
 }
