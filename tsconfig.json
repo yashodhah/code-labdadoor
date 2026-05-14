@@ -13,6 +13,6 @@
     "resolveJsonModule": true,
     "sourceMap": true
   },
-  "include": ["src/**/*", "github/**/*"],
+  "include": ["src/**/*", "github/**/*", "eslint.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
