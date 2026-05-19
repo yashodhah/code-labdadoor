@@ -17,7 +17,7 @@ const STATUS_MAP: Record<string, string> = {
 export class LocalVcsProvider implements VcsProvider {
   listChangedFiles(): Promise<ChangedFileMetadata[]> {
     const nameStatus = git("diff", "--cached", "--name-status");
-    if (!nameStatus) return [];
+    if (!nameStatus) return Promise.resolve([]);
 
     const numStat = git("diff", "--cached", "--numstat");
     const statMap = new Map<string, { additions: number; deletions: number }>();
