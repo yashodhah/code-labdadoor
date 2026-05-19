@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import type { DiffContext } from "./review-config";
 import { AGENT_REGISTRY } from "./agent-registry";
-import { GitHubVcsProvider } from "./github";
+import type { VcsProvider } from "../types/vcs";
 
 import type {
   AgentScope,
@@ -60,7 +60,7 @@ export function writeSharedContext(ctx: ReviewContext): string {
   return contextPath;
 }
 
-async function materializePatch(vcs: GitHubVcsProvider, file: PatchFileRef): Promise<void> {
+async function materializePatch(vcs: VcsProvider, file: PatchFileRef): Promise<void> {
   if (fs.existsSync(file.patchPath)) {
     return;
   }
@@ -77,7 +77,7 @@ async function materializePatch(vcs: GitHubVcsProvider, file: PatchFileRef): Pro
 }
 
 export async function prepareContext(
-  vcs: GitHubVcsProvider,
+  vcs: VcsProvider,
   _ctx: DiffContext,
   changedFiles: ChangedFileMetadata[],
 ): Promise<AgentScope[]> {

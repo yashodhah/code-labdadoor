@@ -20,10 +20,43 @@ It uses a multi-agent pipeline where a classifier decides which specialist agent
 ## How it works
 
 1. Receives PR context (title, diff, changed files) — from GitHub event payload or a local config
-2. Classifies the PR (risk tier: trivial / lite / full) and selects which agents to run
-3. Each agent reviews its scoped diff and returns XML findings
-4. Findings are deduplicated by file + line overlap (highest severity wins)
-5. Returns a structured review
+2. Resolves coding standards — if `LABRADOR_STANDARDS` is set, installs skill packages via `npx skills add` and loads their `SKILL.md` content (see **Standards loading** below)
+3. Classifies the PR (risk tier: trivial / lite / full) and selects which agents to run
+4. Each agent reviews its scoped diff and returns XML findings; the `quality` agent additionally enforces any loaded coding standards
+5. Findings are deduplicated by file + line overlap (highest severity wins)
+6. Returns a structured review
+
+## Standards loading
+
+The `quality` agent can be extended with external coding standards at runtime. All other agents (security, performance, docs, agents-freshness) are unaffected.
+
+**Configuration**
+
+Set the `LABRADOR_STANDARDS` environment variable to a comma-separated list of skill sources in any format accepted by `npx skills add`:
+
+```bash
+LABRADOR_STANDARDS=owner/repo
+LABRADOR_STANDARDS=owner/repo1,owner/standards-repo2
+```
+
+**What happens at startup**
+
+`src/reviewer/standards-loader.ts` runs once before the review pipeline:
+
+1. For each source, runs `npx skills add <source> --yes` — installs skill files into `.claude/skills/` (project) or `~/.claude/skills/` (global)
+2. Scans both locations for `SKILL.md` files
+3. Concatenates their content and appends it under a `## CODING STANDARDS` heading in the `quality` agent's system message
+
+**Testing the behavior**
+
+To verify standards are loaded and enforced:
+
+1. Install a standards package: `LABRADOR_STANDARDS=thecloudplumbingco/tcp-standards`
+2. Stage a TypeScript file that violates a known rule (e.g., uses `any` — violates `TCP-TS-001`)
+3. Run `bun run src/local.ts`
+4. Expect a `quality` agent finding citing the rule code (e.g., `TCP-TS-001`)
+
+If no rule code appears in the finding, the standards were not loaded — check that `.claude/skills/` contains the expected `SKILL.md` files after the run.
 
 ## Integrations
 
@@ -31,4 +64,4 @@ For now this repo directly supports GitHub integration. Further integrations (e.
 
 ## Code review
 
-When reviewing code in this repository, invoke the `typescript-standards` skill.
+When reviewing code in this repository, invoke the `tcp-standards:typescript-standards` skill.

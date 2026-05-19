@@ -3,6 +3,7 @@ import * as path from "node:path";
 import { CopilotClient, approveAll } from "@github/copilot-sdk";
 import type { ReviewConfig } from "./review-config";
 import { AGENT_REGISTRY } from "./agent-registry";
+import { loadStandards } from "./standards-loader";
 import type { AgentScope, Category, Confidence, Severity, SpecialistFinding } from "../types";
 
 const VALID_SEVERITIES: readonly Severity[] = ["critical", "warning", "suggestion"];
@@ -196,11 +197,17 @@ export async function orchestrateAgentsImpl(
     return [];
   }
 
+  const standardsContent = await loadStandards(config.standards ?? []);
+
   const agentInstructions = new Map<string, string>();
   for (const scope of scopes) {
     const agent = AGENT_REGISTRY.find((a) => a.name === scope.agentName);
     if (agent) {
-      agentInstructions.set(scope.agentName, await loadAgentInstructions(agent.instructionFiles));
+      let instructions = await loadAgentInstructions(agent.instructionFiles);
+      if (scope.agentName === "quality" && standardsContent) {
+        instructions += "\n\n## CODING STANDARDS\n\n" + standardsContent;
+      }
+      agentInstructions.set(scope.agentName, instructions);
     }
   }
 

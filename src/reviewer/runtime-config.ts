@@ -52,14 +52,33 @@ function resolveVcsConfig(rawVcs: VcsConfig | undefined): VcsConfig {
   };
 }
 
+export function loadLocalConfig(settingsPath: string): ReviewConfig {
+  const rawConfig = JSON.parse(fs.readFileSync(settingsPath, "utf-8")) as Pick<
+    ReviewConfig,
+    "models"
+  >;
+  const standards = process.env.LABRADOR_STANDARDS?.split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return {
+    models: rawConfig.models,
+    vcs: { token: "", repo: "", prNumber: 0 },
+    ...(standards?.length ? { standards } : {}),
+  };
+}
+
 export function loadReviewConfig(settingsPath: string): ReviewConfig {
   const projectRoot = path.resolve(path.dirname(settingsPath), "..", "..");
   loadDotEnvCandidates(projectRoot);
 
   const rawConfig = JSON.parse(fs.readFileSync(settingsPath, "utf-8")) as ReviewConfig;
+  const standards = process.env.LABRADOR_STANDARDS?.split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   return {
     ...rawConfig,
     vcs: resolveVcsConfig(rawConfig.vcs),
+    ...(standards?.length ? { standards } : {}),
   };
 }

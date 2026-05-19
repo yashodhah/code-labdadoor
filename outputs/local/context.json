@@ -16,21 +16,21 @@
       "status": "modified",
       "additions": 44,
       "deletions": 3,
-      "patchPath": "/Users/yashodhah/ai_scout/ai-reviewer/code-labdadoor/outputs/local/patches/nodes/CopilotAgent/CopilotAgent.node.ts.diff"
+      "patchPath": "/Users/yashodhah/ai_scout/SDLC-Harness/code-labdadoor/outputs/local/patches/nodes/CopilotAgent/CopilotAgent.node.ts.diff"
     },
     {
       "filename": "nodes/CopilotAgent/__tests__/session.test.ts",
       "status": "added",
       "additions": 119,
       "deletions": 0,
-      "patchPath": "/Users/yashodhah/ai_scout/ai-reviewer/code-labdadoor/outputs/local/patches/nodes/CopilotAgent/__tests__/session.test.ts.diff"
+      "patchPath": "/Users/yashodhah/ai_scout/SDLC-Harness/code-labdadoor/outputs/local/patches/nodes/CopilotAgent/__tests__/session.test.ts.diff"
     },
     {
       "filename": "nodes/CopilotAgent/session.ts",
       "status": "modified",
       "additions": 19,
       "deletions": 2,
-      "patchPath": "/Users/yashodhah/ai_scout/ai-reviewer/code-labdadoor/outputs/local/patches/nodes/CopilotAgent/session.ts.diff"
+      "patchPath": "/Users/yashodhah/ai_scout/SDLC-Harness/code-labdadoor/outputs/local/patches/nodes/CopilotAgent/session.ts.diff"
     }
   ]
 }

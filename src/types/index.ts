@@ -6,3 +6,4 @@ export * from "./approval";
 export * from "./findings";
 export * from "./context";
 export * from "./agent";
+export * from "./vcs";

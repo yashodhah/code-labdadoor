@@ -1,7 +1,10 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { CopilotClient, approveAll } from "@github/copilot-sdk";
 import { AGENT_REGISTRY } from "./agent-registry";
 import { DiffContext, ReviewConfig, toDiffContext } from "./review-config";
 import { GitHubVcsProvider } from "./github";
+import { LocalVcsProvider } from "./local";
 import { RiskTier } from "../types/approval";
 import type { ChangedFileMetadata } from "../types/context";
 
@@ -37,6 +40,37 @@ export async function setupPreReview(_config: ReviewConfig): Promise<{
   console.log("Derived context:", JSON.stringify(ctx, null, 2));
 
   return { vcs, ctx, changedFiles };
+}
+
+// ─── Setup: Local (staged diff, no GitHub) ────────────────────────────────────
+
+export async function setupLocalPreReview(_config: ReviewConfig): Promise<{
+  vcs: LocalVcsProvider;
+  ctx: DiffContext;
+  changedFiles: ChangedFileMetadata[];
+  agentRules: string | null;
+}> {
+  const vcs = new LocalVcsProvider();
+  const changedFiles = await vcs.listChangedFiles();
+
+  let agentRules: string | null = null;
+  try {
+    agentRules = fs.readFileSync(path.join(process.cwd(), "AGENTS.md"), "utf-8");
+  } catch {
+    // no AGENTS.md present, fine
+  }
+
+  const ctx: DiffContext = {
+    prNumber: 0,
+    title: "",
+    author: "",
+    description: "",
+    files: changedFiles.map((f) => f.filename),
+    additions: changedFiles.reduce((sum, f) => sum + (f.additions ?? 0), 0),
+    deletions: changedFiles.reduce((sum, f) => sum + (f.deletions ?? 0), 0),
+  };
+
+  return { vcs, ctx, changedFiles, agentRules };
 }
 
 // ─── LLM fallback for domain-sensitive agents ─────────────────────────────────

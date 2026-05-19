@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "api-design-standards": {
+      "source": "yashodhah/thecloudplumbingco_standards",
+      "sourceType": "github",
+      "skillPath": "skills/api-design-standards/SKILL.md",
+      "computedHash": "2d0c14547ec198df4c0dc3f17c3953ef041c3b3491b06f17aaf50215961646e1"
+    },
+    "typescript-standards": {
+      "source": "yashodhah/thecloudplumbingco_standards",
+      "sourceType": "github",
+      "skillPath": "skills/typescript-standards/SKILL.md",
+      "computedHash": "186f68468a7be58b94bff4de3aadadcf38cca9fb58f88253006e9a36d79d462d"
+    },
+    "using-tcp-standards": {
+      "source": "yashodhah/thecloudplumbingco_standards",
+      "sourceType": "github",
+      "skillPath": "skills/using-tcp-standards/SKILL.md",
+      "computedHash": "4f0becb57c06b47efe9274c23a3cb6cb9c3a1335ccd8ce7c1a3132b7dcb52024"
+    }
+  }
+}

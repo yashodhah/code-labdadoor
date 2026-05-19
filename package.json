@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "review": "bun src/index.ts",
+    "review:local": "bun src/local.ts",
     "lint": "eslint --flag unstable_native_nodejs_ts_config src/ github/",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit"

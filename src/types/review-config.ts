@@ -51,6 +51,7 @@ export interface ModelsConfig {
 export interface ReviewConfig {
   vcs: VcsConfig;
   models: ModelsConfig;
+  standards?: string[]; // skill sources, e.g. ["owner/repo"] — resolved from LABRADOR_STANDARDS env
 }
 
 // ─── Adapter ─────────────────────────────────────────────────────────────────

@@ -1,9 +1,4 @@
 {
-  "vcs": {
-    "token": "",
-    "repo": "",
-    "prNumber": 0
-  },
   "models": {
     "top": {
       "id": "claude-sonnet-4.6",
